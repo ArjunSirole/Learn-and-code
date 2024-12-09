@@ -1,3 +1,4 @@
+# Assignment 1: The below program is to Roll the Dice
 import random
 
 def roll_dice(sides):
@@ -19,7 +20,7 @@ main()
 
 
 
-
+# Assignment 2: The below program is to guess the correct number between 1 to 100
 import random
 
 def is_valid_guess(guess):
@@ -52,21 +53,21 @@ def main():
 main()
 
 
-
+# Assignment 3: The below program is to check whether the number is Armstrong number or not
 def calculate_sum_of_powers(number):
     sum_of_powers = 0
     number_digits = 0
 
-    temp_number = number
-    while temp_number > 0:
+    temporary_number = number
+    while temporary_number > 0:
         number_digits += 1
-        temp_number //= 10
+        temporary_number //= 10
 
-    temp_number = number
+    temporary_number = number
     for _ in range(number_digits):
-        digit = temp_number % 10
+        digit = temporary_number % 10
         sum_of_powers += digit ** number_digits
-        temp_number //= 10
+        temporary_number //= 10
     
     return sum_of_powers
 
