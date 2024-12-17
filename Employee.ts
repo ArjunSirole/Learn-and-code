@@ -45,8 +45,3 @@ class Employee {
     }
 }
 
-const employee = new Employee(1, "John Doe", "Engineering", true);
-employee.save();
-employee.printDetails();
-employee.terminate();
-console.log(`Is working? ${employee.isWorking()}`);
