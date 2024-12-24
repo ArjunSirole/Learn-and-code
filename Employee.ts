@@ -1,13 +1,13 @@
 class Employee {
     id: number;
     name: string;
-    department: string;
+    departmentName: string;
     working: boolean;
 
-    constructor(id: number, name: string, department: string, working: boolean) {
+    constructor(id: number, name: string, departmentName: string, working: boolean) {
         this.id = id;
         this.name = name;
-        this.department = department;
+        this.departmentName = departmentName;
         this.working = working;
     }
 
