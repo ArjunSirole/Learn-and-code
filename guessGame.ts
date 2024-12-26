@@ -39,7 +39,7 @@ function generateRandomNumber(): number {
 function startNewGameSession(secretNumber: number): void {
     let numberOfGuesses = 0;
 
-    function processGuess(guess: number): void {
+    function handleGuess(guess: number): void {
         numberOfGuesses++;
         const feedback = provideGuessFeedback(guess, secretNumber);
 
@@ -48,11 +48,11 @@ function startNewGameSession(secretNumber: number): void {
             userInput.close();  
         } else {
             console.log(feedback);
-            askForGuess(processGuess);  
+            askForGuess(handleGuess);  
         }
     }
 
-    askForGuess(processGuess);
+    askForGuess(handleGuess);
 }
 
 function beginGuessingGame(): void {
