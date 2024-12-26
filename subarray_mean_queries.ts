@@ -1,14 +1,14 @@
 import * as readlineSync from 'readline-sync';
 
 function main(): void {
-    const [arraySize, queryCount] = readArrayFromInput(); 
-    const numbers = readArrayFromInput();
+    const [arraySize, queryCount] = readNumbersFromInput (); 
+    const numbers = readNumbersFromInput ();
     
     const prefixSumArray = calculatePrefixSum(numbers);
     handleQueries(queryCount, prefixSumArray);
 }
 
-function readArrayFromInput(): number[] {
+function readNumbersFromInput (): number[] {
     const inputLine = readlineSync.question().trim();
     return inputLine.split(' ').map(Number);
 }
@@ -26,7 +26,7 @@ function calculatePrefixSum(numbers: number[]): number[] {
 
 function handleQueries(queryCount: number, prefixSumArray: number[]): void {
     for (let queryIndex = 0; queryIndex < queryCount; queryIndex++) {
-        const [leftIndex, rightIndex] = readArrayFromInput();  
+        const [leftIndex, rightIndex] = readNumbersFromInput ();  
         const mean = calculateMean(prefixSumArray, leftIndex, rightIndex);
         printMean(mean);  
     }
