@@ -8,8 +8,8 @@ axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 async function fetchTumblrData(blogName: string, start: number, end: number) {
   const apiUrl = buildTumblrApiUrl(blogName, start, end);
   try {
-    const rawData = await fetchTumblrDataFromUrl(apiUrl);
-    return extractTumblrPosts(rawData);
+    const apiResponseData  = await fetchTumblrDataFromUrl(apiUrl);
+    return extractTumblrPosts(apiResponseData );
   } catch (error) {
     console.error('Error fetching Tumblr data:', error);
     return null;
@@ -27,8 +27,8 @@ async function fetchTumblrDataFromUrl(url: string) {
   return response.data;
 }
 
-function extractTumblrPosts(rawData: string) {
-  const match = rawData.match(/var tumblr_api_read = (\{.*\});/);
+function extractTumblrPosts(apiResponseData : string) {
+  const match = apiResponseData .match(/var tumblr_api_read = (\{.*\});/);
   if (!match) {
     console.error('Failed to extract JSON from response.');
     return null;
