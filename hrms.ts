@@ -1,6 +1,5 @@
 const promptSync = require("prompt-sync")();
 
-// Abstract base class for Employee
 abstract class Employee {
     constructor(
         private name: string,
@@ -24,7 +23,6 @@ abstract class Employee {
     abstract displayDetails(): void;
 }
 
-// Manager class inherits from Employee
 class Manager extends Employee {
     constructor(
         name: string,
@@ -53,7 +51,6 @@ class Manager extends Employee {
     }
 }
 
-// Developer class inherits from Employee
 class Developer extends Employee {
     constructor(
         name: string,
@@ -79,7 +76,6 @@ class Developer extends Employee {
     }
 }
 
-// Service for managing employee records (adding/removing employees)
 class EmployeeManagementService {
     private employees: Employee[] = [];
 
@@ -106,7 +102,6 @@ class EmployeeManagementService {
     }
 }
 
-// Service for filtering employees by role or department
 class EmployeeFilterService {
     constructor(private employees: Employee[]) {}
 
@@ -125,7 +120,6 @@ class EmployeeFilterService {
     }
 }
 
-// Employee Display Service
 class EmployeeDisplayService {
     public static displayDetails(employee: Employee): void {
         employee.displayDetails();
@@ -140,7 +134,6 @@ class EmployeeDisplayService {
     }
 }
 
-// Employee Creation Service
 class EmployeeCreationService {
     public static createEmployee(employeeService: EmployeeManagementService): void {
         const name = promptSync('Enter the employee name: ') || '';
@@ -202,14 +195,12 @@ class EmployeeCreationService {
     }
 }
 
-// Service for handling user input
 class UserInputService {
     public static getChoice(prompt: string): string {
         return promptSync(prompt);
     }
 }
 
-// Main class for interaction flow
 class EmployeeMenuService {
     private employeeService: EmployeeManagementService;
     private filterService: EmployeeFilterService;
@@ -278,7 +269,6 @@ class EmployeeMenuService {
     }
 }
 
-// Running the main function
 function main() {
     const menuService = new EmployeeMenuService();
     menuService.show();
