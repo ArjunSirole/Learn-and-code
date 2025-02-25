@@ -37,6 +37,6 @@ class Employee {
   let employee = new Employee("John", 30, 50000);
 
   
-// Employee is an object, because it is a instance of the Employee blueprint. 
+// Employee is an object, because it is a instance of the Employee. 
 // It has its own specific data like the name "John", age 30, and salary 50000, 
-// that makes it different from any other employee.
+// that makes it different from any other employee. So employee is an object of the Employee class.
