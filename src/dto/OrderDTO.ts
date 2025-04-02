@@ -1,11 +1,11 @@
-export class OrderDTO {
+export class OrderDto {
   orderId: number;
   itemName: string;
   quantity: number;
   price: number;
   total: number;
 
-  constructor(order: any) {
+  constructor(order: Record<string, any>) {
     this.orderId = order.orderId;
     this.itemName = order.item_name;
     this.quantity = order.quantity;

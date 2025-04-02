@@ -1,14 +1,16 @@
+import { OrderItem } from "./types";
+
 export class OrderService {
   static calculateShippingCost(
-    shipping_method: string,
+    shippingMethod: string,
     price: number,
     quantity: number
   ): number {
-    if (shipping_method === "Free") return 0;
+    if (shippingMethod === "Free") return 0;
     if (price * quantity > 10000) {
-      return shipping_method === "Express" ? 100 : 50;
+      return shippingMethod === "Express" ? 100 : 50;
     }
-    return shipping_method === "Express" ? 200 : 100;
+    return shippingMethod === "Express" ? 200 : 100;
   }
 
   static calculateDiscount(price: number, quantity: number): number {
@@ -24,21 +26,21 @@ export class OrderService {
     return (subtotal - discount) * 0.05;
   }
 
-  static computeOrderSummary(
+  static calculateOrderSummary(
     price: number,
     quantity: number,
-    shipping_method: string
+    shippingMethod: string
   ) {
     const subtotal = price * quantity;
     const discount = this.calculateDiscount(price, quantity);
-    const shipping_cost = this.calculateShippingCost(
-      shipping_method,
+    const shippingCost = this.calculateShippingCost(
+      shippingMethod,
       price,
       quantity
     );
     const taxes = this.calculateTaxes(subtotal, discount);
-    const total = subtotal - discount + shipping_cost + taxes;
+    const total = subtotal - discount + shippingCost + taxes;
 
-    return { subtotal, discount, shipping_cost, taxes, total };
+    return { subtotal, discount, shippingCost, taxes, total };
   }
 }
