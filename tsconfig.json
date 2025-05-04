@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+      "outDir": "./dist",   // Make sure this line exists
+      "rootDir": "./src",   // Ensure your TypeScript files are in 'src' folder
+      "module": "CommonJS",
+      "target": "ES6",
+      "strict": true,
+      "esModuleInterop": true
+    }
+  }
+  
