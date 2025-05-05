@@ -2,7 +2,13 @@
 import { Account } from './Account';
 import { ATM } from './ATM';
 import { ServerConnectionError, InsufficientFundsError, InvalidAmountError, PinBlockedError } from './errors';
-import readlineSync from 'readline-sync'; 
+import readlineSync from 'readline-sync';
+
+enum MenuOption {
+  WithdrawCash = 1,
+  CheckATMCash = 2,
+  Exit = 3
+}
 
 export class ATMService {
   private atm: ATM;
@@ -26,7 +32,7 @@ export class ATMService {
           console.log(error.message);
           break;
         }
-        if (error instanceof Error) { 
+        if (error instanceof Error) {
           console.log(error.message);
         } else {
           console.log('An unknown error occurred');
@@ -35,21 +41,21 @@ export class ATMService {
       }
 
       while (true) {
-        console.log('1. Withdraw Cash');
+        console.log('\n1. Withdraw Cash');
         console.log('2. Check ATM Cash');
         console.log('3. Exit');
         const choice = readlineSync.questionInt('Choose an option: ');
 
         try {
           switch (choice) {
-            case 1:
+            case MenuOption.WithdrawCash:
               const amount = readlineSync.questionInt('Enter the amount to withdraw: ');
               this.attemptWithdrawal(amount);
               break;
-            case 2:
+            case MenuOption.CheckATMCash:
               this.atm.checkAvailableCash();
               break;
-            case 3:
+            case MenuOption.Exit:
               exit = true;
               break;
             default:
@@ -59,7 +65,7 @@ export class ATMService {
           if (error instanceof ServerConnectionError) {
             const retry = readlineSync.keyInYNStrict('Unable to connect to the server. Do you want to retry?');
             if (!retry) break;
-          } else if (error instanceof Error) { 
+          } else if (error instanceof Error) {
             console.log(error.message);
           } else {
             console.log('An unknown error occurred');
@@ -80,7 +86,7 @@ export class ATMService {
       } else if (error instanceof ServerConnectionError) {
         const retry = readlineSync.keyInYNStrict('Unable to connect to the server. Do you want to retry?');
         if (!retry) return;
-        this.attemptWithdrawal(amount); 
+        this.attemptWithdrawal(amount);
       } else if (error instanceof Error) {
         console.log(error.message);
       } else {
