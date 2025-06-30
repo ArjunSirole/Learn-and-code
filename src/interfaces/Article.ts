@@ -8,4 +8,8 @@ export interface Article {
   published_at?: string;
   description?: string;
   categories?: string[];
+  feedback_count?: {
+    like?: number;
+    dislike?: number;
+  };
 }

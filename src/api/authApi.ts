@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { BASE_URL } from '../config/config';
-import { LoginRequest, SignupRequest } from '../interfaces/Auth';
+import axios from "axios";
+import { BASE_URL } from "../config/config";
+import { LoginRequest, SignupRequest } from "../interfaces/Auth";
 
 export class AuthApi {
   async signup(data: SignupRequest) {

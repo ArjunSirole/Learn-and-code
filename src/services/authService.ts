@@ -1,7 +1,6 @@
-// authService.ts
-import { AuthApi } from '../api/authApi';
-import { LoginRequest, SignupRequest } from '../interfaces/Auth';
-import { SessionService } from './sessionService';
+import { AuthApi } from "../api/authApi";
+import { LoginRequest, SignupRequest } from "../interfaces/Auth";
+import { SessionService } from "./sessionService";
 
 export class AuthService {
   private authApi = new AuthApi();
@@ -12,7 +11,10 @@ export class AuthService {
       console.log(response.data.message);
       return true;
     } catch (error: any) {
-      console.error('Signup failed:', error.response?.data?.message || error.message);
+      console.error(
+        "Signup failed:",
+        error.response?.data?.message || error.message
+      );
       return false;
     }
   }
@@ -25,7 +27,10 @@ export class AuthService {
       SessionService.saveToken(token);
       return true;
     } catch (error: any) {
-      console.error('Login failed:', error.response?.data?.message || error.message);
+      console.error(
+        "Login failed:",
+        error.response?.data?.message || error.message
+      );
       return false;
     }
   }

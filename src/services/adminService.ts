@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import { AdminApi } from "../api/adminApi";
+import { AUTO_HIDE_THRESHOLD } from "../config/constants";
 
 export class AdminService {
   private api = new AdminApi();
@@ -11,17 +12,20 @@ export class AdminService {
         console.log("\nNo external servers found.");
         return;
       }
-
       console.log("\nExternal Servers:\n");
       servers.forEach((server: any, index: number) => {
-        console.log(`${index + 1}. ${server.name} - ${server.status} (Last accessed: ${server.last_accessed})`);
+        console.log(
+          `${index + 1}. ${server.name} - ${server.status} (Last accessed: ${
+            server.last_accessed
+          })`
+        );
       });
     } catch (error) {
       this.handleError("fetching servers", error);
     }
   }
 
-  async showServerDetails(id: number): Promise<void> {
+  async showServerDetails(id: string): Promise<void> {
     try {
       const { data: s } = await this.api.getServerById(id);
       console.log(`\nServer #${s.id} - ${s.name}`);
@@ -48,6 +52,70 @@ export class AdminService {
       console.log(`Category "${name}" added successfully.`);
     } catch (error) {
       this.handleError("adding category", error);
+    }
+  }
+
+  async hideCategory(): Promise<void> {
+    try {
+      const { category } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "category",
+          message: "Enter the category name to hide:",
+        },
+      ]);
+      await this.api.hideCategory(category);
+      console.log(`Category "${category}" hidden successfully.`);
+    } catch (error) {
+      this.handleError("hiding category", error);
+    }
+  }
+
+  async unhideCategory(): Promise<void> {
+    try {
+      const { category } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "category",
+          message: "Enter the category name to unhide:",
+        },
+      ]);
+      await this.api.unhideCategory(category);
+      console.log(`Category "${category}" unhidden successfully.`);
+    } catch (error) {
+      this.handleError("unhiding category", error);
+    }
+  }
+
+  async addKeywordFilter(): Promise<void> {
+    try {
+      const { keyword } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "keyword",
+          message: "Enter the keyword to filter out articles:",
+        },
+      ]);
+      await this.api.addKeywordFilter(keyword);
+      console.log(`Keyword "${keyword}" added to filter list.`);
+    } catch (error) {
+      this.handleError("adding keyword filter", error);
+    }
+  }
+
+  async removeKeywordFilter(): Promise<void> {
+    try {
+      const { keyword } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "keyword",
+          message: "Enter the keyword to remove from filter list:",
+        },
+      ]);
+      await this.api.removeKeywordFilter(keyword);
+      console.log(`Keyword "${keyword}" removed from filter list.`);
+    } catch (error) {
+      this.handleError("removing keyword filter", error);
     }
   }
 
@@ -92,7 +160,9 @@ export class AdminService {
       const { data } = await this.api.getUserMetrics();
       console.log(`\nUser Metrics:`);
       console.log(`Total Users: ${data.total_users}`);
-      console.log(`Active: ${data.active_users}  Inactive: ${data.inactive_users}`);
+      console.log(
+        `Active: ${data.active_users}  Inactive: ${data.inactive_users}`
+      );
     } catch (error) {
       this.handleError("fetching user metrics", error);
     }
@@ -115,17 +185,24 @@ export class AdminService {
       const { data: reports } = await this.api.getReportedArticles();
 
       if (!reports.length) {
-        console.log(" No reported articles found.");
+        console.log("No reported articles found.");
         return;
       }
 
       for (const report of reports) {
-        console.log(`\n📢 Article Title: ${report.title}`);
+        console.log(`\nArticle Title: ${report.title}`);
         console.log(`URL: ${report.url}`);
-        console.log(`Reported by User ID: ${report.user_id}`);
         console.log(`Reason: ${report.reason}`);
-        console.log(`Report ID: ${report.id}`);
+        console.log(`Total Reports: ${report.report_count}`);
+        console.log(`Hidden: ${report.is_hidden ? "Yes" : "No"}`);
+        console.log(`Report ID: ${report.report_id}`);
         console.log("---------------------------");
+
+        if (report.report_count >= AUTO_HIDE_THRESHOLD && !report.is_hidden) {
+          await this.api.hideArticle(report.article_id);
+          console.log(`Article auto-hidden due to exceeding report threshold.`);
+          continue;
+        }
 
         const { action } = await inquirer.prompt([
           {
@@ -135,19 +212,19 @@ export class AdminService {
             choices: [
               { name: "1. Hide Article", value: "hide" },
               { name: "2. Dismiss Report", value: "dismiss" },
-              { name: "3. Skip", value: "skip" }
-            ]
-          }
+              { name: "3. Back", value: "back" },
+            ],
+          },
         ]);
 
         if (action === "hide") {
           await this.api.hideArticle(report.article_id);
-          console.log(` Article ID ${report.article_id} hidden.`);
+          console.log(`Article ID ${report.article_id} hidden.`);
         } else if (action === "dismiss") {
-          await this.api.dismissReport(report.id);
-          console.log(` Report ID ${report.id} dismissed.`);
-        } else {
-          console.log(" Skipped.");
+          await this.api.dismissReport(report.report_id);
+          console.log(`Report ID ${report.report_id} dismissed.`);
+        } else if (action === "back") {
+          break;
         }
       }
     } catch (error) {
@@ -156,6 +233,9 @@ export class AdminService {
   }
 
   private handleError(context: string, error: unknown): void {
-    console.error(`\n Error ${context}:`, error instanceof Error ? error.message : error);
+    console.error(
+      `\nError ${context}:`,
+      error instanceof Error ? error.message : error
+    );
   }
 }

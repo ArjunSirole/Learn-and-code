@@ -1,10 +1,16 @@
-//  Fully Updated userMenu with clean naming, typing, and structure
-
 import inquirer from "inquirer";
 import { format } from "date-fns";
 import { NewsService } from "../services/newsService";
 import { notificationMenu } from "./notificationMenu";
 import { Article } from "../interfaces/Article";
+import {
+  USER_MENU_CHOICES,
+  HEADLINES_MENU_CHOICES,
+  SAVED_ARTICLES_MENU_CHOICES,
+  FEEDBACK_CHOICES,
+  SEARCH_CATEGORY_CHOICES,
+  SEARCH_SORT_CHOICES,
+} from "../config/constants";
 
 const newsService = new NewsService();
 
@@ -17,13 +23,7 @@ export async function userMenu(): Promise<void> {
         type: "list",
         name: "choice",
         message: "User Menu - Choose an option:",
-        choices: [
-          "1. Headlines",
-          "2. Saved Articles",
-          "3. Search",
-          "4. Notifications",
-          "5. Logout",
-        ],
+        choices: USER_MENU_CHOICES,
       },
     ]);
 
@@ -57,7 +57,7 @@ async function headlinesMenu(): Promise<void> {
       type: "list",
       name: "subChoice",
       message: "View Headlines for:",
-      choices: ["1. Today", "2. Date Range", "3. Back"],
+      choices: HEADLINES_MENU_CHOICES,
     },
   ]);
 
@@ -98,15 +98,7 @@ async function savedArticlesMenu(): Promise<void> {
         type: "list",
         name: "action",
         message: "Saved Articles Menu:",
-        choices: [
-          "1. View All Saved Articles",
-          "2. Like/Dislike a Saved Article",
-          "3. View Liked Articles",
-          "4. View Disliked Articles",
-          "5. Delete a Saved Article",
-          "6. Report an Article",
-          "7. Back",
-        ],
+        choices: SAVED_ARTICLES_MENU_CHOICES,
       },
     ]);
 
@@ -129,7 +121,7 @@ async function savedArticlesMenu(): Promise<void> {
       case "6": {
         const saved = await newsService.getSavedArticles();
         if (!saved || saved.length === 0) {
-          console.log(" No saved articles to report.");
+          console.log("No saved articles to report.");
           break;
         }
 
@@ -171,8 +163,7 @@ async function savedArticlesMenu(): Promise<void> {
 }
 
 async function handleLikeDislike(): Promise<void> {
-  const response = await newsService.getSavedArticles();
-  const articles: Article[] = response.data ?? [];
+  const articles: Article[] = await newsService.getSavedArticles();
 
   if (!articles.length) {
     console.log("No saved articles found.");
@@ -200,7 +191,7 @@ async function handleLikeDislike(): Promise<void> {
       type: "list",
       name: "feedback",
       message: "What feedback would you like to give?",
-      choices: ["LIKE", "DISLIKE"],
+      choices: FEEDBACK_CHOICES,
     },
   ]);
 
@@ -245,7 +236,7 @@ async function searchMenu(): Promise<void> {
       type: "list",
       name: "category",
       message: "Select category (optional):",
-      choices: ["Skip", "Business", "Entertainment", "Sports", "Technology"],
+      choices: SEARCH_CATEGORY_CHOICES,
     },
     {
       type: "input",
@@ -263,7 +254,7 @@ async function searchMenu(): Promise<void> {
       type: "list",
       name: "sortBy",
       message: "Sort by:",
-      choices: ["Relevance", "Date", "Like", "Dislike"],
+      choices: SEARCH_SORT_CHOICES,
     },
   ]);
 

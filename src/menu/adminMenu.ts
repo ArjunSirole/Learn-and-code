@@ -1,5 +1,6 @@
 import inquirer from "inquirer";
 import { AdminService } from "../services/adminService";
+import { ADMIN_MENU_CHOICES } from "../config/constants";
 
 const adminService = new AdminService();
 
@@ -14,19 +15,7 @@ export async function adminMenu(): Promise<void> {
         type: "list",
         name: "choice",
         message: "Choose an action:",
-        choices: [
-          { name: "1. View external servers", value: "servers" },
-          { name: "2. View server details", value: "serverDetails" },
-          { name: "3. Update server API key", value: "updateApiKey" },
-          { name: "4. Add news category", value: "addCategory" },
-          { name: "5. Delete user", value: "deleteUser" },
-          { name: "6. Deactivate user", value: "deactivateUser" },
-          { name: "7. Reactivate user", value: "reactivateUser" },
-          { name: "8. Change user role", value: "changeUserRole" },
-          { name: "9. View user metrics", value: "userMetrics" },
-          { name: "10. Review Reported Articles", value: "reviewReports" },
-          { name: "11. Logout", value: "logout" },
-        ],
+        choices: ADMIN_MENU_CHOICES,
       },
     ]);
 
@@ -34,12 +23,14 @@ export async function adminMenu(): Promise<void> {
       case "servers":
         await adminService.showServers();
         break;
+
       case "serverDetails":
         const { id: serverId } = await inquirer.prompt([
           { type: "input", name: "id", message: "Enter server ID:" },
         ]);
-        await adminService.showServerDetails(Number(serverId));
+        await adminService.showServerDetails(serverId);
         break;
+
       case "updateApiKey":
         const { id: upId, apiKey } = await inquirer.prompt([
           { type: "input", name: "id", message: "Enter server ID:" },
@@ -47,18 +38,21 @@ export async function adminMenu(): Promise<void> {
         ]);
         await adminService.updateServerApiKey(Number(upId), apiKey);
         break;
+
       case "addCategory":
         const { name } = await inquirer.prompt([
           { type: "input", name: "name", message: "Enter category name:" },
         ]);
         await adminService.addCategory(name);
         break;
+
       case "deleteUser":
         const { id: delId } = await inquirer.prompt([
           { type: "input", name: "id", message: "Enter user ID to delete:" },
         ]);
         await adminService.deleteUser(Number(delId));
         break;
+
       case "deactivateUser":
         const { id: deactId } = await inquirer.prompt([
           {
@@ -69,6 +63,7 @@ export async function adminMenu(): Promise<void> {
         ]);
         await adminService.deactivateUser(Number(deactId));
         break;
+
       case "reactivateUser":
         const { id: reactId } = await inquirer.prompt([
           {
@@ -79,6 +74,7 @@ export async function adminMenu(): Promise<void> {
         ]);
         await adminService.reactivateUser(Number(reactId));
         break;
+
       case "changeUserRole":
         const { id: roleId, role } = await inquirer.prompt([
           { type: "input", name: "id", message: "Enter user ID:" },
@@ -91,9 +87,11 @@ export async function adminMenu(): Promise<void> {
         ]);
         await adminService.changeUserRole(Number(roleId), role);
         break;
+
       case "userMetrics":
         await adminService.showUserMetrics();
         break;
+
       case "reviewReports":
         await adminService.reviewReportedArticles();
         break;

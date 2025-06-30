@@ -1,10 +1,7 @@
-import axios from 'axios';
-import { BASE_URL } from '../config/config';
-import { SessionService } from '../services/sessionService';
-
-const getHeaders = () => ({
-  Authorization: `Bearer ${SessionService.getToken()}`,
-});
+import axios from "axios";
+import { BASE_URL } from "../config/config";
+import { SessionService } from "../services/sessionService";
+import { getHeaders } from "../utils/requestUtils";
 
 export class NewsApi {
   async getHeadlines(date?: string, startDate?: string, endDate?: string) {
@@ -24,7 +21,9 @@ export class NewsApi {
   }
 
   async deleteArticle(articleId: string) {
-    return axios.delete(`${BASE_URL}/news/saved/${articleId}`, { headers: getHeaders() });
+    return axios.delete(`${BASE_URL}/news/saved/${articleId}`, {
+      headers: getHeaders(),
+    });
   }
 
   async searchArticles(
@@ -52,10 +51,12 @@ export class NewsApi {
     url: string;
     source: string;
   }) {
-    return axios.post(`${BASE_URL}/news/save`, article, { headers: getHeaders() });
+    return axios.post(`${BASE_URL}/news/save`, article, {
+      headers: getHeaders(),
+    });
   }
 
-  async giveFeedback(articleId: string, feedback: 'LIKE' | 'DISLIKE') {
+  async giveFeedback(articleId: string, feedback: "LIKE" | "DISLIKE") {
     return axios.post(
       `${BASE_URL}/news/${articleId}/feedback`,
       { feedback },
@@ -65,7 +66,7 @@ export class NewsApi {
 
   async reportArticle(articleId: number, reason: string) {
     return axios.post(
-      `${BASE_URL}/news/articles/${articleId}/report`,
+      `${BASE_URL}/news/${articleId}/report`,
       { reason },
       { headers: getHeaders() }
     );
