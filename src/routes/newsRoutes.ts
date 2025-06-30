@@ -7,7 +7,7 @@ import {
   giveFeedbackOnArticle,
   fetchFeedbackSortedArticles,
   removeSavedArticle,
-  reportArticle 
+  reportArticle,
 } from "../controllers/newsController";
 import { verifyToken } from "../middlewares/authMiddleware";
 
@@ -20,6 +20,6 @@ router.get("/search", searchArticles);
 router.post("/:article_id/feedback", verifyToken, giveFeedbackOnArticle);
 router.get("/sorted-feedback", verifyToken, fetchFeedbackSortedArticles);
 router.delete("/saved/:articleId", verifyToken, removeSavedArticle);
-router.post("/articles/:article_id/report", verifyToken, reportArticle);
+router.post("/:article_id/report", verifyToken, reportArticle);
 
 export default router;

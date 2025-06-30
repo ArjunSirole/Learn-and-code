@@ -172,6 +172,135 @@ async function toggleUserStatus(
   }
 }
 
+export async function fetchReportedArticles(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const reports = await adminService.getReportedArticles();
+    res.status(200).json(reports);
+  } catch (error) {
+    console.error("Error fetching reported articles:", error);
+    res.status(500).json({ message: "Failed to fetch reported articles" });
+  }
+}
+
+export async function hideArticle(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  try {
+    await adminService.hideArticle(Number(id));
+    res.status(200).json({ message: "Article hidden successfully" });
+  } catch (error) {
+    handleServerError(res, "hiding article", error);
+  }
+}
+
+export async function dismissReport(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { id } = req.params;
+  try {
+    await adminService.dismissReport(Number(id));
+    res.status(200).json({ message: "Report dismissed successfully" });
+  } catch (error) {
+    handleServerError(res, "dismissing report", error);
+  }
+}
+
+export async function hideCategory(req: Request, res: Response): Promise<void> {
+  const { name } = req.params;
+  try {
+    const result = await adminService.hideCategory(name);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Category not found" });
+      return;
+    }
+    res.status(200).json({ message: "Category hidden successfully" });
+  } catch (error) {
+    handleServerError(res, "hiding category", error);
+  }
+}
+
+export async function unhideCategory(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { name } = req.params;
+  try {
+    const result = await adminService.unhideCategory(name);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Category not found" });
+      return;
+    }
+    res.status(200).json({ message: "Category unhidden successfully" });
+  } catch (error) {
+    handleServerError(res, "unhiding category", error);
+  }
+}
+
+export async function fetchCategories(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const categories = await adminService.getCategories();
+    res.status(200).json(categories);
+  } catch (error) {
+    handleServerError(res, "fetching categories", error);
+  }
+}
+
+export async function fetchBannedKeywords(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const keywords = await adminService.getBannedKeywords();
+    res.status(200).json(keywords);
+  } catch (error) {
+    handleServerError(res, "fetching banned keywords", error);
+  }
+}
+
+export async function addBannedKeyword(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { keyword } = req.body;
+  if (!keyword || typeof keyword !== "string") {
+    res.status(400).json({ message: "Keyword is required" });
+    return;
+  }
+  try {
+    await adminService.addBannedKeyword(keyword);
+    res.status(201).json({ message: "Keyword added successfully" });
+  } catch (error) {
+    handleServerError(res, "adding banned keyword", error);
+  }
+}
+
+export async function deleteBannedKeyword(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const id = Number(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ message: "Invalid keyword ID" });
+    return;
+  }
+  try {
+    const result = await adminService.removeBannedKeyword(id);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Keyword not found" });
+      return;
+    }
+    res.status(200).json({ message: "Keyword deleted successfully" });
+  } catch (error) {
+    handleServerError(res, "deleting banned keyword", error);
+  }
+}
+
 function handleServerError(
   res: Response,
   context: string,

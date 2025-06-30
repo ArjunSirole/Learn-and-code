@@ -1,17 +1,21 @@
 import pool from "../config/db";
 import { RowDataPacket } from "mysql2";
 import { v4 as uuidv4 } from "uuid";
+import { REPORT_THRESHOLD } from "../config/constants";
 
 function sanitizeDatetime(dateString?: string): string {
   if (!dateString) {
     return new Date().toISOString().slice(0, 19).replace("T", " ");
   }
-  const date = new Date(dateString);
+  let date = new Date(dateString);
+
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date format: ${dateString}`);
   }
+
   return date.toISOString().slice(0, 19).replace("T", " ");
 }
+
 
 export class NewsService {
   private generateUniqueId(): string {
@@ -54,10 +58,16 @@ export class NewsService {
 
     for (const article of articles) {
       try {
+        if (article.category) {
+          await pool.query(`INSERT IGNORE INTO categories (name) VALUES (?)`, [
+            article.category,
+          ]);
+        }
+
         await pool.query(
           `INSERT INTO articles (external_id, title, url, source, published_at, category, description, categories)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE 
+           ON DUPLICATE KEY UPDATE
              title = VALUES(title),
              source = VALUES(source),
              published_at = VALUES(published_at),
@@ -80,22 +90,41 @@ export class NewsService {
         console.error("Error saving article:", error);
       }
     }
-
     return saved;
   }
 
-  async getArticlesFromDB(date?: string) {
-    let sql = `SELECT id, title, url, source, category, published_at, categories FROM articles`;
+  async getArticlesFromDB(startDate?: string, endDate?: string) {
+    let sql = `
+      SELECT a.id, a.title, a.url, a.source, a.category, a.published_at, a.description, a.categories
+      FROM articles a
+      LEFT JOIN categories c ON a.category = c.name
+      WHERE (c.hidden IS NULL OR c.hidden = 0)
+        AND NOT EXISTS (
+          SELECT 1 FROM banned_keywords bk
+          WHERE 
+            a.title LIKE CONCAT('%', bk.keyword, '%')
+            OR a.description LIKE CONCAT('%', bk.keyword, '%')
+        )
+    `;
     const params: any[] = [];
-
-    if (date) {
-      sql += " WHERE DATE(published_at) = ?";
-      params.push(date);
+  
+    if (startDate && endDate) {
+      sql += ` AND a.published_at BETWEEN ? AND ?`;
+      params.push(`${startDate} 00:00:00`, `${endDate} 23:59:59`);
+    } else if (startDate) {
+      sql += ` AND a.published_at >= ?`;
+      params.push(`${startDate} 00:00:00`);
+    } else if (endDate) {
+      sql += ` AND a.published_at <= ?`;
+      params.push(`${endDate} 23:59:59`);
     }
-
+  
+    sql += ` ORDER BY a.published_at DESC`;
+  
     const [rows] = await pool.query<RowDataPacket[]>(sql, params);
     return rows;
   }
+  
 
   async saveArticle(id: string, title: string, url: string, source: string) {
     await pool.query(
@@ -197,13 +226,39 @@ export class NewsService {
     );
   }
 
-  async reportArticle(userId: number, articleId: number, reason: string): Promise<void> {
-    await pool.query(
-      `INSERT INTO article_reports (user_id, article_id, reason)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE reason = VALUES(reason), created_at = CURRENT_TIMESTAMP`,
-      [userId, articleId, reason]
-    );
+  async reportArticle(userId: number, articleId: number, reason: string) {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query(
+        `INSERT INTO article_reports (user_id, article_id, reason)
+         VALUES (?, ?, ?)`,
+        [userId, articleId, reason]
+      );
+
+      const [reportCountRows] = await conn.query<RowDataPacket[]>(
+        `SELECT COUNT(*) AS count FROM article_reports WHERE article_id = ?`,
+        [articleId]
+      );
+
+      const reportCount = reportCountRows[0].count;
+
+      if (reportCount >= REPORT_THRESHOLD) {
+        await conn.query(`UPDATE articles SET is_hidden = 1 WHERE id = ?`, [
+          articleId,
+        ]);
+      }
+
+      await conn.commit();
+    } catch (error: any) {
+      await conn.rollback();
+      if (error.code === "ER_DUP_ENTRY") {
+        throw new Error("You have already reported this article.");
+      }
+      throw error;
+    } finally {
+      conn.release();
+    }
   }
-  
 }

@@ -11,6 +11,15 @@ import {
   logoutAdmin,
   fetchUserMetrics,
   fetchNewsMetrics,
+  fetchReportedArticles,
+  hideArticle,
+  dismissReport,
+  fetchCategories,
+  hideCategory,
+  unhideCategory,
+  addBannedKeyword,
+  deleteBannedKeyword,
+  fetchBannedKeywords,
 } from "../controllers/adminController";
 
 const router = Router();
@@ -28,6 +37,17 @@ router.put("/users/:id/role", updateUserRole);
 
 router.get("/metrics/users", fetchUserMetrics);
 router.get("/metrics/news", fetchNewsMetrics);
+
+router.get("/reports", fetchReportedArticles);
+router.put("/articles/:id/hide", hideArticle);
+router.put("/reports/:id/dismiss", dismissReport);
+
+router.get("/categories", fetchCategories);
+router.put("/categories/:name/hide", hideCategory);
+router.put("/categories/:name/unhide", unhideCategory);
+router.get("/banned-keywords", fetchBannedKeywords);
+router.post("/banned-keywords", addBannedKeyword);
+router.delete("/banned-keywords/:id", deleteBannedKeyword);
 
 router.post("/logout", logoutAdmin);
 

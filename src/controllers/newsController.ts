@@ -4,10 +4,15 @@ import { NewsService } from "../services/newsService";
 
 const newsService = new NewsService();
 
-export async function fetchHeadlines(req: Request, res: Response): Promise<void> {
+export async function fetchHeadlines(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
-    const date = req.query.date as string | undefined;
-    const articles = await newsService.getArticlesFromDB(date);
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    const articles = await newsService.getArticlesFromDB(startDate, endDate);
 
     if (!articles || articles.length === 0) {
       res.sendStatus(204);
@@ -20,7 +25,10 @@ export async function fetchHeadlines(req: Request, res: Response): Promise<void>
   }
 }
 
-export async function saveUserArticle(req: AuthRequest, res: Response): Promise<void> {
+export async function saveUserArticle(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
   const { articleId, title, url, source } = req.body;
   const userId = req.user.id;
 
@@ -33,7 +41,10 @@ export async function saveUserArticle(req: AuthRequest, res: Response): Promise<
   }
 }
 
-export async function fetchSavedArticles(req: AuthRequest, res: Response): Promise<void> {
+export async function fetchSavedArticles(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
   const userId = req.user.id;
 
   try {
@@ -44,7 +55,10 @@ export async function fetchSavedArticles(req: AuthRequest, res: Response): Promi
   }
 }
 
-export async function removeSavedArticle(req: AuthRequest, res: Response): Promise<void> {
+export async function removeSavedArticle(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
   const { articleId } = req.params;
   const userId = req.user.id;
 
@@ -78,7 +92,10 @@ export const searchArticles: RequestHandler = async (req, res) => {
   }
 };
 
-export async function giveFeedbackOnArticle(req: AuthRequest, res: Response): Promise<void> {
+export async function giveFeedbackOnArticle(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
   const articleId = parseInt(req.params.article_id);
   const { feedback } = req.body;
   const userId = req.user.id;
@@ -95,13 +112,18 @@ export async function giveFeedbackOnArticle(req: AuthRequest, res: Response): Pr
 
   try {
     await newsService.submitFeedback(userId, articleId, feedback);
-    res.status(200).json({ message: `Article ${feedback.toLowerCase()}d successfully.` });
+    res
+      .status(200)
+      .json({ message: `Article ${feedback.toLowerCase()}d successfully.` });
   } catch (error) {
     handleError("submitting article feedback", error, res);
   }
 }
 
-export async function fetchFeedbackSortedArticles(req: AuthRequest, res: Response): Promise<void> {
+export async function fetchFeedbackSortedArticles(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
   const sort = req.query.sort as string | undefined;
   const userId = req.user.id;
 
@@ -121,26 +143,37 @@ export async function fetchFeedbackSortedArticles(req: AuthRequest, res: Respons
   }
 }
 
-export async function reportArticle(req: AuthRequest, res: Response): Promise<void> {
+export async function reportArticle(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  console.log("Incoming POST /news/:article_id/report");
   const userId = req.user.id;
   const articleId = parseInt(req.params.article_id);
-  const { reason } = req.body;
-
-  if (!reason || !reason.trim()) {
-    res.status(400).json({ message: "Report reason is required." });
-    return;
-  }
 
   if (isNaN(articleId)) {
     res.status(400).json({ message: "Invalid article ID." });
     return;
   }
 
+  const { reason } = req.body;
+
+  if (!reason || typeof reason !== "string") {
+    res
+      .status(400)
+      .json({ message: "Reason is required to report an article." });
+    return;
+  }
+
   try {
     await newsService.reportArticle(userId, articleId, reason);
     res.status(200).json({ message: "Article reported successfully." });
-  } catch (error) {
-    handleError("reporting article", error, res);
+  } catch (error: any) {
+    if (error.message.includes("already reported")) {
+      res.status(409).json({ message: error.message });
+    } else {
+      handleError("reporting article", error, res);
+    }
   }
 }
 

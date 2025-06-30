@@ -11,10 +11,12 @@ export interface Article {
 export interface NewsApiArticle {
   title: string;
   url: string;
+  urlToImage?: string;
   source?: { name: string };
   publishedAt?: string;
   category?: string;
   description?: string;
+  image_url?: string;
 }
 
 export interface NewsApiResponse {
@@ -33,6 +35,7 @@ export interface TheNewsApiArticle {
   category?: string;
   published_at?: string;
   source?: string;
+  image_url?: string;
 }
 
 export interface TheNewsApiResponse {
