@@ -3,12 +3,12 @@ import cron from "node-cron";
 import pool from "../config/db";
 import { NEWS_CATEGORIES } from "../config/constants";
 import { NewsApiResponse, TheNewsApiResponse } from "../models/articleModel";
-import { EmailScheduler } from "./emailScheduler"; 
+import { EmailScheduler } from "./emailScheduler";
 
 const emailScheduler = new EmailScheduler();
 
 export class NewsScheduler {
-  constructor(private interval = "0 */1 * * *") {}
+  constructor(private interval = "0 */3 * * *") {}
 
   public start(): void {
     console.log(" News scheduler started. Interval:", this.interval);
@@ -127,7 +127,7 @@ export class NewsScheduler {
               url: article.url,
               source: article.source ?? "TheNewsAPI",
               description: article.description,
-              image_url: undefined, 
+              image_url: undefined,
             });
           }
         }
@@ -157,12 +157,14 @@ export class NewsScheduler {
     try {
       // If there's a published_at, format it for MySQL compatibility
       let formattedPublishedAt = article.published_at;
-  
+
       if (formattedPublishedAt) {
         // Remove the 'Z' and replace 'T' with a space to match the MySQL format
-        formattedPublishedAt = formattedPublishedAt.replace('T', ' ').replace('Z', '');
+        formattedPublishedAt = formattedPublishedAt
+          .replace("T", " ")
+          .replace("Z", "");
       }
-  
+
       await pool.query(
         `INSERT IGNORE INTO articles (
           id, title, category, published_at, url, source, description, image_url
@@ -179,7 +181,7 @@ export class NewsScheduler {
           article.image_url ?? null,
         ]
       );
-  
+
       // Insert into notifications
       await emailScheduler.insertNotificationsForNewArticle({
         title: article.title,
@@ -191,7 +193,6 @@ export class NewsScheduler {
       console.error("DB insertion error:", error);
     }
   }
-  
 
   private async updateLastAccessed(serverId: string): Promise<void> {
     try {

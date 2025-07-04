@@ -142,14 +142,14 @@ export class AdminService {
 
   async getBannedKeywords(): Promise<RowDataPacket[]> {
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, keyword FROM banned_keywords ORDER BY keyword"
+      "SELECT id, keyword, enabled FROM banned_keywords ORDER BY keyword"
     );
     return rows;
   }
 
   async addBannedKeyword(keyword: string): Promise<[OkPacket, unknown]> {
     return pool.query<OkPacket>(
-      "INSERT IGNORE INTO banned_keywords (keyword) VALUES (?)",
+      "INSERT IGNORE INTO banned_keywords (keyword, enabled) VALUES (?, TRUE)",
       [keyword]
     );
   }
@@ -158,6 +158,30 @@ export class AdminService {
     const [result] = await pool.query<OkPacket>(
       "DELETE FROM banned_keywords WHERE id = ?",
       [id]
+    );
+    return result;
+  }
+
+  async disableBannedKeyword(id: number): Promise<OkPacket> {
+    const [result] = await pool.query<OkPacket>(
+      "UPDATE banned_keywords SET enabled = FALSE WHERE id = ?",
+      [id]
+    );
+    return result;
+  }
+
+  async enableBannedKeyword(id: number): Promise<OkPacket> {
+    const [result] = await pool.query<OkPacket>(
+      "UPDATE banned_keywords SET enabled = TRUE WHERE id = ?",
+      [id]
+    );
+    return result;
+  }
+
+  async unhideArticle(articleId: number): Promise<OkPacket> {
+    const [result] = await pool.query<OkPacket>(
+      "UPDATE articles SET is_hidden = 0 WHERE id = ?",
+      [articleId]
     );
     return result;
   }

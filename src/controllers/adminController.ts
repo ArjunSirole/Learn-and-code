@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { AdminService } from "../services/adminService";
+import { UserService } from "../services/userService";
 
 const adminService = new AdminService();
+const userService = new UserService();
 
 export async function fetchServers(req: Request, res: Response): Promise<void> {
   try {
@@ -49,6 +51,19 @@ export async function updateServerApiKey(
     res.status(200).json({ message: "API key updated successfully" });
   } catch (error) {
     handleServerError(res, "updating API key", error);
+  }
+}
+
+export async function fetchAllUsers(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const users = await userService.getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("[AdminController.fetchAllUsers]:", error);
+    res.status(500).json({ message: "Failed to fetch users." });
   }
 }
 
@@ -298,6 +313,61 @@ export async function deleteBannedKeyword(
     res.status(200).json({ message: "Keyword deleted successfully" });
   } catch (error) {
     handleServerError(res, "deleting banned keyword", error);
+  }
+}
+
+export async function enableBannedKeyword(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const id = Number(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ message: "Invalid keyword ID" });
+    return;
+  }
+  try {
+    const result = await adminService.enableBannedKeyword(id);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Keyword not found" });
+      return;
+    }
+    res.status(200).json({ message: "Keyword enabled successfully" });
+  } catch (error) {
+    handleServerError(res, "enabling banned keyword", error);
+  }
+}
+
+export async function disableBannedKeyword(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const id = Number(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ message: "Invalid keyword ID" });
+    return;
+  }
+  try {
+    const result = await adminService.disableBannedKeyword(id);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Keyword not found" });
+      return;
+    }
+    res.status(200).json({ message: "Keyword disabled successfully" });
+  } catch (error) {
+    handleServerError(res, "disabling banned keyword", error);
+  }
+}
+
+export async function unhideArticle(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const { id } = req.params;
+  try {
+    await adminService.unhideArticle(Number(id));
+    res.status(200).json({ message: "Article unhidden successfully" });
+  } catch (error) {
+    handleServerError(res, "unhiding article", error);
   }
 }
 

@@ -119,13 +119,12 @@ export async function fetchUserNotifications(
   }
 }
 
-
 export async function markNotificationsAsRead(
   req: Request,
   res: Response
 ): Promise<void> {
   const userId = parseInt(req.body.user_id);
-  const notificationIds = req.body.notification_ids;
+  const notificationIds = req.body.notificationIds;
 
   if (isNaN(userId) || !Array.isArray(notificationIds)) {
     res.status(400).json({ message: "Invalid input data" });

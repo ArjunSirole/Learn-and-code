@@ -25,6 +25,10 @@ export class AuthService {
 
   async createUser({ name, email, password }: NewUser): Promise<void> {
     const hashedPassword = await hashPassword(password);
+    const existing = await this.findUserByEmail(email);
+    if (existing) {
+      throw new Error("Email already exists");
+    }
     await pool.query(
       "INSERT INTO users (name, email, password, role, active) VALUES (?, ?, ?, 'USER', true)",
       [name, email, hashedPassword]

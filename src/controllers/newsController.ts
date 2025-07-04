@@ -11,15 +11,23 @@ export async function fetchHeadlines(
   try {
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
 
-    const articles = await newsService.getArticlesFromDB(startDate, endDate);
+    const [articles, total] = await Promise.all([
+      newsService.getArticlesFromDB(startDate, endDate, limit, offset),
+      newsService.countArticles(startDate, endDate),
+    ]);
 
     if (!articles || articles.length === 0) {
-      res.sendStatus(204);
+      res.status(204).send();
       return;
     }
 
-    res.status(200).json({ articles });
+    res.status(200).json({
+      articles,
+      total,
+    });
   } catch (error) {
     handleError("fetching headlines", error, res);
   }
@@ -86,7 +94,13 @@ export const searchArticles: RequestHandler = async (req, res) => {
       endDate as string | undefined,
       sortBy as string | undefined
     );
-    res.status(200).json(results);
+
+    if (!results || results.length === 0) {
+      res.status(204).send();
+      return;
+    }
+
+    res.status(200).json({ articles: results });
   } catch (error) {
     handleError("searching articles", error, res);
   }
@@ -147,7 +161,6 @@ export async function reportArticle(
   req: AuthRequest,
   res: Response
 ): Promise<void> {
-  console.log("Incoming POST /news/:article_id/report");
   const userId = req.user.id;
   const articleId = parseInt(req.params.article_id);
 
@@ -156,7 +169,7 @@ export async function reportArticle(
     return;
   }
 
-  const { reason } = req.body;
+  const { reason, banKeywords } = req.body;
 
   if (!reason || typeof reason !== "string") {
     res
@@ -165,8 +178,15 @@ export async function reportArticle(
     return;
   }
 
+  if (banKeywords && !Array.isArray(banKeywords)) {
+    res
+      .status(400)
+      .json({ message: "banKeywords must be an array of strings." });
+    return;
+  }
+
   try {
-    await newsService.reportArticle(userId, articleId, reason);
+    await newsService.reportArticle(userId, articleId, reason, banKeywords);
     res.status(200).json({ message: "Article reported successfully." });
   } catch (error: any) {
     if (error.message.includes("already reported")) {

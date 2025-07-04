@@ -6,6 +6,11 @@ const authService = new AuthService();
 export async function handleSignup(req: Request, res: Response): Promise<void> {
   const { name, email, password } = req.body;
 
+  if (!name || !email || !password) {
+    res.status(400).json({ message: "Name, email, and password are required" });
+    return;
+  }
+
   try {
     const userExists = await authService.findUserByEmail(email);
 

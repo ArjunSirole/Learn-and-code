@@ -7,15 +7,12 @@ function sanitizeDatetime(dateString?: string): string {
   if (!dateString) {
     return new Date().toISOString().slice(0, 19).replace("T", " ");
   }
-  let date = new Date(dateString);
-
+  const date = new Date(dateString);
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date format: ${dateString}`);
   }
-
   return date.toISOString().slice(0, 19).replace("T", " ");
 }
-
 
 export class NewsService {
   private generateUniqueId(): string {
@@ -34,6 +31,7 @@ export class NewsService {
         : null,
       description: article.description || null,
       categories: article.category ? [article.category] : [],
+      image_url: article.urlToImage || null,
     };
   }
 
@@ -50,12 +48,12 @@ export class NewsService {
       description: article.description || article.snippet || null,
       categories:
         article.categories || (article.category ? [article.category] : []),
+      image_url: article.image_url || null,
     };
   }
 
   async saveHeadlines(articles: any[]): Promise<any[]> {
     const saved: any[] = [];
-
     for (const article of articles) {
       try {
         if (article.category) {
@@ -65,15 +63,18 @@ export class NewsService {
         }
 
         await pool.query(
-          `INSERT INTO articles (external_id, title, url, source, published_at, category, description, categories)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE
-             title = VALUES(title),
-             source = VALUES(source),
-             published_at = VALUES(published_at),
-             category = VALUES(category),
-             description = VALUES(description),
-             categories = VALUES(categories)`,
+          `INSERT INTO articles (
+            external_id, title, url, source, published_at, category, description, categories, image_url
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+            title = VALUES(title),
+            source = VALUES(source),
+            published_at = VALUES(published_at),
+            category = VALUES(category),
+            description = VALUES(description),
+            categories = VALUES(categories),
+            image_url = VALUES(image_url)`,
           [
             article.external_id,
             article.title,
@@ -83,6 +84,7 @@ export class NewsService {
             article.category,
             article.description,
             JSON.stringify(article.categories || []),
+            article.image_url,
           ]
         );
         saved.push(article);
@@ -93,12 +95,27 @@ export class NewsService {
     return saved;
   }
 
-  async getArticlesFromDB(startDate?: string, endDate?: string) {
+  async getArticlesFromDB(
+    startDate?: string,
+    endDate?: string,
+    limit = 20,
+    offset = 0
+  ) {
     let sql = `
-      SELECT a.id, a.title, a.url, a.source, a.category, a.published_at, a.description, a.categories
+      SELECT 
+        a.id,
+        a.title,
+        a.url,
+        a.source,
+        a.category,
+        a.published_at,
+        a.description,
+        a.categories,
+        a.image_url
       FROM articles a
       LEFT JOIN categories c ON a.category = c.name
-      WHERE (c.hidden IS NULL OR c.hidden = 0)
+      WHERE a.is_hidden = 0
+        AND (c.hidden IS NULL OR c.hidden = 0)
         AND NOT EXISTS (
           SELECT 1 FROM banned_keywords bk
           WHERE 
@@ -107,7 +124,7 @@ export class NewsService {
         )
     `;
     const params: any[] = [];
-  
+
     if (startDate && endDate) {
       sql += ` AND a.published_at BETWEEN ? AND ?`;
       params.push(`${startDate} 00:00:00`, `${endDate} 23:59:59`);
@@ -118,13 +135,44 @@ export class NewsService {
       sql += ` AND a.published_at <= ?`;
       params.push(`${endDate} 23:59:59`);
     }
-  
-    sql += ` ORDER BY a.published_at DESC`;
-  
+
+    sql += ` ORDER BY a.published_at DESC LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
+
     const [rows] = await pool.query<RowDataPacket[]>(sql, params);
     return rows;
   }
-  
+
+  async countArticles(startDate?: string, endDate?: string) {
+    let sql = `
+      SELECT COUNT(*) AS total
+      FROM articles a
+      LEFT JOIN categories c ON a.category = c.name
+      WHERE a.is_hidden = 0
+        AND (c.hidden IS NULL OR c.hidden = 0)
+        AND NOT EXISTS (
+          SELECT 1 FROM banned_keywords bk
+          WHERE 
+            a.title LIKE CONCAT('%', bk.keyword, '%')
+            OR a.description LIKE CONCAT('%', bk.keyword, '%')
+        )
+    `;
+    const params: any[] = [];
+
+    if (startDate && endDate) {
+      sql += ` AND a.published_at BETWEEN ? AND ?`;
+      params.push(`${startDate} 00:00:00`, `${endDate} 23:59:59`);
+    } else if (startDate) {
+      sql += ` AND a.published_at >= ?`;
+      params.push(`${startDate} 00:00:00`);
+    } else if (endDate) {
+      sql += ` AND a.published_at <= ?`;
+      params.push(`${endDate} 23:59:59`);
+    }
+
+    const [rows] = await pool.query<RowDataPacket[]>(sql, params);
+    return rows[0].total;
+  }
 
   async saveArticle(id: string, title: string, url: string, source: string) {
     await pool.query(
@@ -144,13 +192,14 @@ export class NewsService {
     const [rows] = await pool.query(
       `
       SELECT 
-        a.id, a.title, a.url, a.source,
+        a.id, a.title, a.url, a.source, a.image_url,
         MAX(af.feedback) AS feedback
       FROM saved_articles sa
       JOIN articles a ON sa.article_id = a.id
       LEFT JOIN article_feedback af ON sa.article_id = af.article_id AND af.user_id = ?
       WHERE sa.user_id = ?
-      GROUP BY a.id, a.title, a.url, a.source
+        AND a.is_hidden = 0
+      GROUP BY a.id, a.title, a.url, a.source, a.image_url
       `,
       [userId, userId]
     );
@@ -165,9 +214,10 @@ export class NewsService {
     sortBy?: string
   ) {
     let sql = `
-      SELECT id, title, url, source, published_at
+      SELECT id, title, url, source, published_at, description, image_url
       FROM articles
-      WHERE MATCH(title, description, source) AGAINST(? IN NATURAL LANGUAGE MODE)
+      WHERE is_hidden = 0
+        AND MATCH(title, description, source) AGAINST(? IN NATURAL LANGUAGE MODE)
     `;
     const params: any[] = [query];
 
@@ -210,10 +260,11 @@ export class NewsService {
 
   async getFeedbackArticles(userId: number, feedback: "LIKE" | "DISLIKE") {
     const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT a.id, a.title, a.url, af.feedback
+      `SELECT a.id, a.title, a.url, a.image_url, af.feedback
        FROM article_feedback af
        JOIN articles a ON af.article_id = a.id
-       WHERE af.user_id = ? AND af.feedback = ?`,
+       WHERE af.user_id = ? AND af.feedback = ?
+         AND a.is_hidden = 0`,
       [userId, feedback]
     );
     return rows;
@@ -226,14 +277,19 @@ export class NewsService {
     );
   }
 
-  async reportArticle(userId: number, articleId: number, reason: string) {
+  async reportArticle(
+    userId: number,
+    articleId: number,
+    reason: string,
+    banKeywords?: string[]
+  ) {
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
 
       await conn.query(
         `INSERT INTO article_reports (user_id, article_id, reason)
-         VALUES (?, ?, ?)`,
+       VALUES (?, ?, ?)`,
         [userId, articleId, reason]
       );
 
@@ -241,13 +297,25 @@ export class NewsService {
         `SELECT COUNT(*) AS count FROM article_reports WHERE article_id = ?`,
         [articleId]
       );
-
       const reportCount = reportCountRows[0].count;
 
       if (reportCount >= REPORT_THRESHOLD) {
         await conn.query(`UPDATE articles SET is_hidden = 1 WHERE id = ?`, [
           articleId,
         ]);
+      }
+
+      // Insert banned keywords
+      if (banKeywords && banKeywords.length > 0) {
+        for (const keyword of banKeywords) {
+          if (keyword.trim()) {
+            await conn.query(
+              `INSERT IGNORE INTO banned_keywords (keyword, enabled)
+             VALUES (?, 1)`,
+              [keyword.trim()]
+            );
+          }
+        }
       }
 
       await conn.commit();

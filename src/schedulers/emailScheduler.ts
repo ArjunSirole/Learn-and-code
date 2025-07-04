@@ -8,7 +8,7 @@ import { NOTIFICATION_CATEGORIES } from "../config/constants";
 const DEFAULT_IMAGE_URL = "https://your-cdn-host/default-image.jpg";
 
 export class EmailScheduler {
-  constructor(private schedule = "0 */1 * * *") {}
+  constructor(private schedule = "0 */3 * * *") {}
 
   public start(): void {
     console.log(`[Scheduler] Starting with schedule: ${this.schedule}`);
@@ -24,26 +24,25 @@ export class EmailScheduler {
     const [rows] = await pool.query<RowDataPacket[]>(`
       SELECT * FROM notification_config
     `);
-  
+
     const users = rows as any[];
     for (const user of users) {
       const categoryLower = (article.category ?? "").toLowerCase();
-  
+
       const enabled =
         NOTIFICATION_CATEGORIES.includes(categoryLower) &&
         user[categoryLower] === 1;
-  
+
       const keywordArray =
         user.keywords
           ?.split(",")
           .map((k: string) => k.trim())
           .filter(Boolean) || [];
-  
+
       const keywordMatch = keywordArray.some(
-        (k: string) =>
-          article.title.includes(k) || article.url.includes(k)
+        (k: string) => article.title.includes(k) || article.url.includes(k)
       );
-  
+
       if (enabled || keywordMatch) {
         await pool.query(
           `
@@ -62,7 +61,6 @@ export class EmailScheduler {
       }
     }
   }
-  
 
   private async sendNewsEmails(): Promise<void> {
     try {
@@ -184,7 +182,9 @@ export class EmailScheduler {
           .map(
             (article) => `
           <div style="border-bottom:1px solid #ddd; padding:20px 0;">
-            <h3 style="margin:0 0 10px 0; color:#2c3e50;">${article.article_title}</h3>
+            <h3 style="margin:0 0 10px 0; color:#2c3e50;">${
+              article.article_title
+            }</h3>
             <p><strong>Category:</strong> ${article.category}</p>
             <p><strong>Published:</strong> ${article.article_published_at}</p>
             <img src="${
