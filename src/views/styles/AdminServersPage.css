@@ -1,0 +1,140 @@
+.servers-container {
+  max-width: 1100px;
+  margin: auto;
+  margin-top: 0px;
+  font-family: "Segoe UI", "Roboto", Arial, sans-serif;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.servers-container h2 {
+  text-align: center;
+  font-size: 2em;
+  color: #000000;
+  margin-bottom: 28px;
+}
+
+/* Table */
+.server-list {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.server-list thead {
+  background-color: #eef3f8;
+}
+
+.server-list th,
+.server-list td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.95em;
+}
+
+.server-list th {
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+.server-list tbody tr {
+  transition: background 0.2s ease;
+}
+
+.server-list tbody tr:hover {
+  background-color: #f0f4f8;
+}
+
+.server-list td {
+  border-bottom: 1px solid #eee;
+}
+
+/* Buttons in table */
+.server-actions button {
+  padding: 6px 14px;
+  background-color: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.server-actions button:hover {
+  background-color: #155ab6;
+  transform: scale(1.05);
+}
+
+/* Update form */
+.update-form {
+  margin-top: 32px;
+  background: #fff;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.update-form h3 {
+  margin-top: 0;
+  color: #222;
+  font-size: 1.3em;
+}
+
+.update-form p {
+  margin: 8px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.update-form label {
+  display: block;
+  font-weight: 500;
+  margin-top: 14px;
+  color: #333;
+}
+
+.update-form input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95em;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.update-form input:focus {
+  border: 1px solid #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+  outline: none;
+}
+
+.update-form button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #34a853;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.update-form button:hover {
+  background-color: #2c7a43;
+  transform: scale(1.05);
+}
+
+.error {
+  color: #d93025;
+  margin-top: 16px;
+  text-align: center;
+  font-weight: 500;
+}
