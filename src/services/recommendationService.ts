@@ -19,8 +19,6 @@ export const fetchRecommendedArticles = async ({
   return res.data;
 };
 
-
 export async function markArticleAsRead(articleId: number): Promise<void> {
   await apiClient.post(`/news/mark-read`, { articleId });
 }
-

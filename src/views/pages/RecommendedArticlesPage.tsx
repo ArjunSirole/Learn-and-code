@@ -1,47 +1,23 @@
-import React, { JSX, useEffect, useState } from "react";
+import React, { JSX } from "react";
 import NavigationBar from "../components/NavigationBar";
 import Spinner from "../components/Spinner";
 import Toast from "../components/Toast";
-import "../styles/HeadlinesPage.css"; 
 import fallbackImage from "../../assets/fallback.jpg";
-import {
-  fetchRecommendedArticles,
-  markArticleAsRead,
-} from "../../services/recommendationService";
-import { Article } from "../../interfaces/article";
+import "../styles/HeadlinesPage.css";
+import { useRecommendedArticles } from "../../hooks/useRecommendedArticles";
 
 function RecommendedArticlesPage(): JSX.Element {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(1);
-
-  const ARTICLES_PER_PAGE = 20;
-  const totalPages = Math.ceil(total / ARTICLES_PER_PAGE);
-
-  useEffect(() => {
-    loadArticles();
-  }, [page]);
-
-  async function loadArticles(): Promise<void> {
-    setLoading(true);
-    setError("");
-    try {
-      const { articles: fetchedArticles, total } = await fetchRecommendedArticles({
-        limit: ARTICLES_PER_PAGE,
-        offset: (page - 1) * ARTICLES_PER_PAGE,
-      });
-      setArticles(fetchedArticles || []);
-      setTotal(total || 0);
-    } catch (err: unknown) {
-      console.error("[RecommendedArticlesPage.loadArticles]:", err);
-      setError("Failed to load recommended articles.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    articles,
+    totalPages,
+    currentPage,
+    setPage,
+    loading,
+    error,
+    toastMessage,
+    setToastMessage,
+    handleArticleRead,
+  } = useRecommendedArticles();
 
   const capitalize = (word?: string): string =>
     word ? word.charAt(0).toUpperCase() + word.slice(1) : "";
@@ -96,7 +72,7 @@ function RecommendedArticlesPage(): JSX.Element {
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => markArticleAsRead(article.id)}
+                  onClick={() => handleArticleRead(article.id)}
                 >
                   Read Full Article
                 </a>
@@ -108,17 +84,17 @@ function RecommendedArticlesPage(): JSX.Element {
         {totalPages > 1 && (
           <div className="pagination">
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
             >
               Previous
             </button>
             <span>
-              Page {page} of {totalPages}
+              Page {currentPage} of {totalPages}
             </span>
             <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
+              onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage >= totalPages}
             >
               Next
             </button>

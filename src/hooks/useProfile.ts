@@ -37,7 +37,7 @@ export const useProfile = () => {
         keywords: config.keywords || "",
       });
     } catch (err) {
-      setError("Failed to load preferences.");
+      setError("No saved preferences.");
     }
   };
 

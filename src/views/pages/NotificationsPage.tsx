@@ -7,6 +7,7 @@ import Spinner from "../components/Spinner";
 import "../styles/NotificationsPage.css";
 import { TokenStorage } from "../../utils/tokenStorage";
 import { useNotifications } from "../../hooks/useNotifications";
+import { getUserIdFromToken } from "../../utils/jwtUtils";
 
 function NotificationsPage(): JSX.Element {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ function NotificationsPage(): JSX.Element {
         {loading && <Spinner />}
 
         {notifications.length === 0 && !loading ? (
-          <p>You have no unread notifications.</p>
+          <p>You have no notifications.</p>
         ) : (
           <>
             <button
