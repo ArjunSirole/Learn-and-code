@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { NotificationService } from "../services/notificationService";
 import db from "../config/db";
 import { RowDataPacket } from "mysql2";
+import { logger } from "../utils/logger";
 
 const notificationService = new NotificationService();
 
@@ -148,6 +149,10 @@ export async function markNotificationsAsRead(
 }
 
 function handleError(context: string, error: unknown, res: Response): void {
-  console.error(`Error ${context}:`, error);
+  logger.error(`Error ${context}: ${formatError(error)}`);
   res.status(500).json({ message: `Internal server error while ${context}` });
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : JSON.stringify(error);
 }

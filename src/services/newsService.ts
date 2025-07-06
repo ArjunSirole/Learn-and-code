@@ -64,17 +64,17 @@ export class NewsService {
 
         await pool.query(
           `INSERT INTO articles (
-            external_id, title, url, source, published_at, category, description, categories, image_url
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-            title = VALUES(title),
-            source = VALUES(source),
-            published_at = VALUES(published_at),
-            category = VALUES(category),
-            description = VALUES(description),
-            categories = VALUES(categories),
-            image_url = VALUES(image_url)`,
+              external_id, title, url, source, published_at, category, description, categories, image_url
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              title = VALUES(title),
+              source = VALUES(source),
+              published_at = VALUES(published_at),
+              category = VALUES(category),
+              description = VALUES(description),
+              categories = VALUES(categories),
+              image_url = VALUES(image_url)`,
           [
             article.external_id,
             article.title,
@@ -104,27 +104,27 @@ export class NewsService {
     offset = 0
   ) {
     let sql = `
-  SELECT 
-    a.id,
-    a.title,
-    a.url,
-    a.source,
-    a.category,
-    a.published_at,
-    a.description,
-    a.categories,
-    a.image_url
-  FROM articles a
-  LEFT JOIN categories c ON a.category = c.name
-  WHERE a.is_hidden = 0
-    AND (c.hidden IS NULL OR c.hidden = 0)
-    AND NOT EXISTS (
-      SELECT 1 FROM banned_keywords bk
-      WHERE 
-        a.title LIKE CONCAT('%', bk.keyword, '%')
-        OR a.description LIKE CONCAT('%', bk.keyword, '%')
-    )
-`;
+    SELECT 
+      a.id,
+      a.title,
+      a.url,
+      a.source,
+      a.category,
+      a.published_at,
+      a.description,
+      a.categories,
+      a.image_url
+    FROM articles a
+    LEFT JOIN categories c ON a.category = c.name
+    WHERE a.is_hidden = 0
+      AND (c.hidden IS NULL OR c.hidden = 0)
+      AND NOT EXISTS (
+        SELECT 1 FROM banned_keywords bk
+        WHERE 
+          a.title LIKE CONCAT('%', bk.keyword, '%')
+          OR a.description LIKE CONCAT('%', bk.keyword, '%')
+      )
+  `;
 
     const params: any[] = [];
 
@@ -164,18 +164,18 @@ export class NewsService {
 
   async countArticles(startDate?: string, endDate?: string, category?: string) {
     let sql = `
-      SELECT COUNT(*) AS total
-      FROM articles a
-      LEFT JOIN categories c ON a.category = c.name
-      WHERE a.is_hidden = 0
-        AND (c.hidden IS NULL OR c.hidden = 0)
-        AND NOT EXISTS (
-          SELECT 1 FROM banned_keywords bk
-          WHERE 
-            a.title LIKE CONCAT('%', bk.keyword, '%')
-            OR a.description LIKE CONCAT('%', bk.keyword, '%')
-        )
-    `;
+        SELECT COUNT(*) AS total
+        FROM articles a
+        LEFT JOIN categories c ON a.category = c.name
+        WHERE a.is_hidden = 0
+          AND (c.hidden IS NULL OR c.hidden = 0)
+          AND NOT EXISTS (
+            SELECT 1 FROM banned_keywords bk
+            WHERE 
+              a.title LIKE CONCAT('%', bk.keyword, '%')
+              OR a.description LIKE CONCAT('%', bk.keyword, '%')
+          )
+      `;
     const params: any[] = [];
 
     if (startDate && endDate) {
@@ -214,16 +214,16 @@ export class NewsService {
   async getSavedArticles(userId: number) {
     const [rows] = await pool.query(
       `
-      SELECT 
-        a.id, a.title, a.url, a.source, a.image_url,
-        MAX(af.feedback) AS feedback
-      FROM saved_articles sa
-      JOIN articles a ON sa.article_id = a.id
-      LEFT JOIN article_feedback af ON sa.article_id = af.article_id AND af.user_id = ?
-      WHERE sa.user_id = ?
-        AND a.is_hidden = 0
-      GROUP BY a.id, a.title, a.url, a.source, a.image_url
-      `,
+        SELECT 
+          a.id, a.title, a.url, a.source, a.image_url,
+          MAX(af.feedback) AS feedback
+        FROM saved_articles sa
+        JOIN articles a ON sa.article_id = a.id
+        LEFT JOIN article_feedback af ON sa.article_id = af.article_id AND af.user_id = ?
+        WHERE sa.user_id = ?
+          AND a.is_hidden = 0
+        GROUP BY a.id, a.title, a.url, a.source, a.image_url
+        `,
       [userId, userId]
     );
     return rows;
@@ -237,34 +237,34 @@ export class NewsService {
     sortBy?: string
   ) {
     let sql = `
-    SELECT 
-      a.id, a.title, a.url, a.source, a.published_at, a.description, a.image_url,
-      COALESCE(l.like_count, 0) AS like_count,
-      COALESCE(d.dislike_count, 0) AS dislike_count
-    FROM articles a
-    LEFT JOIN (
-      SELECT article_id, COUNT(*) AS like_count
-      FROM article_feedback
-      WHERE feedback = 'LIKE'
-      GROUP BY article_id
-    ) l ON a.id = l.article_id
-    LEFT JOIN (
-      SELECT article_id, COUNT(*) AS dislike_count
-      FROM article_feedback
-      WHERE feedback = 'DISLIKE'
-      GROUP BY article_id
-    ) d ON a.id = d.article_id
-    WHERE a.is_hidden = 0
-      AND MATCH(a.title, a.description, a.source) AGAINST(? IN NATURAL LANGUAGE MODE)
-  `;
+      SELECT 
+        a.id, a.title, a.url, a.source, a.published_at, a.description, a.image_url,
+        COALESCE(l.like_count, 0) AS like_count,
+        COALESCE(d.dislike_count, 0) AS dislike_count
+      FROM articles a
+      LEFT JOIN (
+        SELECT article_id, COUNT(*) AS like_count
+        FROM article_feedback
+        WHERE feedback = 'LIKE'
+        GROUP BY article_id
+      ) l ON a.id = l.article_id
+      LEFT JOIN (
+        SELECT article_id, COUNT(*) AS dislike_count
+        FROM article_feedback
+        WHERE feedback = 'DISLIKE'
+        GROUP BY article_id
+      ) d ON a.id = d.article_id
+      WHERE a.is_hidden = 0
+        AND MATCH(a.title, a.description, a.source) AGAINST(? IN NATURAL LANGUAGE MODE)
+    `;
 
     const params: any[] = [query];
 
     if (category) {
       sql += ` AND (
-      a.category = ?
-      OR JSON_CONTAINS(a.categories, ?)
-    )`;
+        a.category = ?
+        OR JSON_CONTAINS(a.categories, ?)
+      )`;
       params.push(category, `"${category}"`);
     }
 
@@ -295,8 +295,8 @@ export class NewsService {
   ) {
     await pool.query(
       `INSERT INTO article_feedback (user_id, article_id, feedback)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE feedback = VALUES(feedback)`,
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE feedback = VALUES(feedback)`,
       [userId, articleId, feedback]
     );
   }
@@ -304,10 +304,10 @@ export class NewsService {
   async getFeedbackArticles(userId: number, feedback: "LIKE" | "DISLIKE") {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT a.id, a.title, a.url, a.image_url, af.feedback
-       FROM article_feedback af
-       JOIN articles a ON af.article_id = a.id
-       WHERE af.user_id = ? AND af.feedback = ?
-         AND a.is_hidden = 0`,
+        FROM article_feedback af
+        JOIN articles a ON af.article_id = a.id
+        WHERE af.user_id = ? AND af.feedback = ?
+          AND a.is_hidden = 0`,
       [userId, feedback]
     );
     return rows;
@@ -332,7 +332,7 @@ export class NewsService {
 
       await conn.query(
         `INSERT INTO article_reports (user_id, article_id, reason)
-       VALUES (?, ?, ?)`,
+        VALUES (?, ?, ?)`,
         [userId, articleId, reason]
       );
 
@@ -353,7 +353,7 @@ export class NewsService {
           if (keyword.trim()) {
             await conn.query(
               `INSERT IGNORE INTO banned_keywords (keyword, enabled)
-             VALUES (?, 1)`,
+              VALUES (?, 1)`,
               [keyword.trim()]
             );
           }
@@ -370,5 +370,112 @@ export class NewsService {
     } finally {
       conn.release();
     }
+  }
+
+  async markArticleAsRead(userId: number, articleId: number): Promise<void> {
+    await pool.query(
+      `INSERT IGNORE INTO article_reads (user_id, article_id) VALUES (?, ?)`,
+      [userId, articleId]
+    );
+  }
+
+  async getRecommendedArticles(
+    userId: number,
+    limit = 20,
+    offset = 0
+  ): Promise<[any[], number]> {
+    console.log("Fetching recommended articles for user:", userId);
+
+    const [countRows] = await pool.query<RowDataPacket[]>(
+      `
+    SELECT COUNT(*) AS total
+    FROM articles a
+    LEFT JOIN notification_config nc ON nc.user_id = ?
+    LEFT JOIN categories c ON a.category = c.name
+    WHERE a.is_hidden = 0
+      AND (c.hidden IS NULL OR c.hidden = 0)
+      AND NOT EXISTS (
+        SELECT 1 FROM banned_keywords bk
+        WHERE 
+          a.title LIKE CONCAT('%', bk.keyword, '%')
+          OR a.description LIKE CONCAT('%', bk.keyword, '%')
+      )
+  `,
+      [userId]
+    );
+    const total = countRows[0]?.total ?? 0;
+
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `
+    SELECT 
+      a.id,
+      a.title,
+      a.url,
+      a.source,
+      a.published_at,
+      a.description,
+      a.category,
+      a.image_url,
+
+      (
+        CASE
+          WHEN nc.business = 1 AND a.category = 'business' THEN 10
+          WHEN nc.entertainment = 1 AND a.category = 'entertainment' THEN 10
+          WHEN nc.sports = 1 AND a.category = 'sports' THEN 10
+          WHEN nc.technology = 1 AND a.category = 'technology' THEN 10
+          ELSE 0
+        END
+        +
+        CASE
+          WHEN nc.keywords IS NOT NULL AND (
+            a.title LIKE CONCAT('%', nc.keywords, '%') OR 
+            a.description LIKE CONCAT('%', nc.keywords, '%')
+          ) THEN 15
+          ELSE 0
+        END
+        +
+        CASE
+          WHEN a.category IN (
+            SELECT DISTINCT category FROM articles 
+            WHERE id IN (
+              SELECT article_id FROM saved_articles WHERE user_id = ?
+              UNION
+              SELECT article_id FROM article_feedback WHERE user_id = ?
+              UNION
+              SELECT article_id FROM article_reads WHERE user_id = ?
+            )
+          ) THEN 5
+          ELSE 0
+        END
+        +
+        CASE 
+          WHEN a.published_at >= DATE_SUB(NOW(), INTERVAL 3 DAY) THEN 5
+          ELSE 0
+        END
+      ) AS score
+
+    FROM articles a
+    LEFT JOIN notification_config nc ON nc.user_id = ?
+    LEFT JOIN categories c ON a.category = c.name
+    WHERE a.is_hidden = 0
+      AND (c.hidden IS NULL OR c.hidden = 0)
+      AND NOT EXISTS (
+        SELECT 1 FROM banned_keywords bk
+        WHERE 
+          a.title LIKE CONCAT('%', bk.keyword, '%')
+          OR a.description LIKE CONCAT('%', bk.keyword, '%')
+      )
+    ORDER BY score DESC, a.published_at DESC
+    LIMIT ? OFFSET ?
+  `,
+      [userId, userId, userId, userId, limit, offset]
+    );
+
+    console.log("Recommended articles count:", rows.length);
+    rows.forEach((row) =>
+      console.log(`Score: ${row.score} | Title: ${row.title}`)
+    );
+
+    return [rows, total];
   }
 }

@@ -4,13 +4,13 @@ import { sendEmail } from "../utils/emailService";
 import { RowDataPacket } from "mysql2";
 import { NotificationArticle } from "../interfaces/Notification";
 import { NOTIFICATION_CATEGORIES } from "../config/constants";
-
+import { logger } from "../utils/logger";
 
 export class EmailScheduler {
   constructor(private schedule = "0 */3 * * *") {}
 
   public start(): void {
-    console.log(`[Scheduler] Starting with schedule: ${this.schedule}`);
+    logger.info(`[Scheduler] Starting with schedule: ${this.schedule}`);
     cron.schedule(this.schedule, () => this.sendNewsEmails());
   }
 
@@ -20,48 +20,56 @@ export class EmailScheduler {
     published_at: string;
     url: string;
   }): Promise<void> {
-    const [rows] = await pool.query<RowDataPacket[]>(`
-      SELECT * FROM notification_config
-    `);
-  
-    const users = rows as any[];
-    for (const user of users) {
-      const categoryLower = (article.category ?? "").toLowerCase();
-  
-      const enabled =
-        NOTIFICATION_CATEGORIES.includes(categoryLower) &&
-        user[categoryLower] === 1;
-  
-      const keywordArray =
-        user.keywords
-          ?.split(",")
-          .map((k: string) => k.trim())
-          .filter(Boolean) || [];
-  
-      const keywordMatch = keywordArray.some(
-        (k: string) =>
-          article.title.includes(k) || article.url.includes(k)
-      );
-  
-      if (enabled || keywordMatch) {
-        await pool.query(
-          `
-          INSERT INTO notifications (
-            user_id, title, category, published_at, url, is_read
-          ) VALUES (?, ?, ?, ?, ?, 0)
-        `,
-          [
-            user.user_id,
-            article.title,
-            categoryLower,
-            article.published_at,
-            article.url,
-          ]
+    try {
+      const [rows] = await pool.query<RowDataPacket[]>(`
+        SELECT * FROM notification_config
+      `);
+
+      const users = rows as any[];
+
+      for (const user of users) {
+        const categoryLower = (article.category ?? "").toLowerCase();
+
+        const enabled =
+          NOTIFICATION_CATEGORIES.includes(categoryLower) &&
+          user[categoryLower] === 1;
+
+        const keywordArray =
+          user.keywords
+            ?.split(",")
+            .map((k: string) => k.trim())
+            .filter(Boolean) || [];
+
+        const keywordMatch = keywordArray.some(
+          (k: string) => article.title.includes(k) || article.url.includes(k)
         );
+
+        if (enabled || keywordMatch) {
+          await pool.query(
+            `
+            INSERT INTO notifications (
+              user_id, title, category, published_at, url, is_read
+            ) VALUES (?, ?, ?, ?, ?, 0)
+          `,
+            [
+              user.user_id,
+              article.title,
+              categoryLower,
+              article.published_at,
+              article.url,
+            ]
+          );
+          logger.info(
+            `Notification inserted for user ${user.user_id} - ${article.title}`
+          );
+        }
       }
+    } catch (err) {
+      logger.error(
+        `Error in insertNotificationsForNewArticle: ${formatError(err)}`
+      );
     }
   }
-  
 
   private async sendNewsEmails(): Promise<void> {
     try {
@@ -72,7 +80,7 @@ export class EmailScheduler {
       `);
 
       const users = configs as any[];
-      console.log(`[Scheduler] Users to notify: ${users.length}`);
+      logger.info(`[Scheduler] Users to notify: ${users.length}`);
 
       for (const config of users) {
         const categories = this.extractEnabledCategories(config);
@@ -83,7 +91,7 @@ export class EmailScheduler {
             .filter(Boolean) ?? [];
 
         if (categories.length === 0 && keywords.length === 0) {
-          console.log(`[SKIP] No preferences for ${config.email}`);
+          logger.info(`[SKIP] No preferences for ${config.email}`);
           continue;
         }
 
@@ -94,7 +102,7 @@ export class EmailScheduler {
         );
 
         if (!articles.length) {
-          console.log(`[SKIP] No matching articles for ${config.email}`);
+          logger.info(`[SKIP] No matching articles for ${config.email}`);
           continue;
         }
 
@@ -103,24 +111,22 @@ export class EmailScheduler {
           config.name || "there"
         );
 
-        console.log(`[SEND] Email sent to ${config.email}`);
         await sendEmail(
           config.email,
           "Your Personalized News Update",
           emailHtml
         );
+        logger.info(`[SEND] Email sent to ${config.email}`);
       }
 
-      console.log(`[Scheduler] Email notifications completed.`);
+      logger.info(`[Scheduler] Email notifications completed.`);
     } catch (error) {
-      console.error(`[Scheduler Error]:`, error);
+      logger.error(`[Scheduler Error]: ${formatError(error)}`);
     }
   }
 
   private extractEnabledCategories(config: any): string[] {
-    return NOTIFICATION_CATEGORIES.filter(
-      (cat: string | number) => config[cat] === 1
-    );
+    return NOTIFICATION_CATEGORIES.filter((cat) => config[cat] === 1);
   }
 
   private async fetchArticles(
@@ -183,7 +189,9 @@ export class EmailScheduler {
           .map(
             (article) => `
           <div style="border-bottom:1px solid #ddd; padding:20px 0;">
-            <h3 style="margin:0 0 10px 0; color:#2c3e50;">${article.article_title}</h3>
+            <h3 style="margin:0 0 10px 0; color:#2c3e50;">${
+              article.article_title
+            }</h3>
             <p><strong>Category:</strong> ${article.category}</p>
             <p><strong>Published:</strong> ${article.article_published_at}</p>
             <img src="${
@@ -205,4 +213,8 @@ export class EmailScheduler {
       </div>
     `;
   }
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : JSON.stringify(error);
 }

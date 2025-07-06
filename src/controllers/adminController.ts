@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AdminService } from "../services/adminService";
 import { UserService } from "../services/userService";
+import { logger } from "../utils/logger";
 
 const adminService = new AdminService();
 const userService = new UserService();
@@ -14,16 +15,13 @@ export async function fetchServers(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function fetchServerDetails(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchServerDetails(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
-
   try {
     const server = await adminService.fetchServerById(id);
     if (!server.length) {
       res.status(404).json({ message: "Server not found" });
+      return;
     }
     res.status(200).json(server[0]);
   } catch (error) {
@@ -31,21 +29,20 @@ export async function fetchServerDetails(
   }
 }
 
-export async function updateServerApiKey(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function updateServerApiKey(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   const { apiKey } = req.body;
 
   if (!apiKey) {
     res.status(400).json({ message: "API key is required" });
+    return;
   }
 
   try {
     const result = await adminService.updateServerKey(id, apiKey);
     if (result.affectedRows === 0) {
       res.status(404).json({ message: "Server not found" });
+      return;
     }
 
     res.status(200).json({ message: "API key updated successfully" });
@@ -54,27 +51,21 @@ export async function updateServerApiKey(
   }
 }
 
-export async function fetchAllUsers(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchAllUsers(req: Request, res: Response): Promise<void> {
   try {
     const users = await userService.getAllUsers();
     res.status(200).json(users);
   } catch (error) {
-    console.error("[AdminController.fetchAllUsers]:", error);
-    res.status(500).json({ message: "Failed to fetch users." });
+    handleServerError(res, "fetching all users", error);
   }
 }
 
-export async function createCategory(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function createCategory(req: Request, res: Response): Promise<void> {
   const { name } = req.body;
 
   if (!name) {
     res.status(400).json({ message: "Category name is required" });
+    return;
   }
 
   try {
@@ -94,6 +85,7 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
 
     if (result.affectedRows === 0) {
       res.status(404).json({ message: "User not found" });
+      return;
     }
 
     res.status(200).json({ message: "User deleted successfully" });
@@ -102,35 +94,28 @@ export async function deleteUser(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function deactivateUser(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function deactivateUser(req: Request, res: Response): Promise<void> {
   await toggleUserStatus(req, res, false, "deactivate");
 }
 
-export async function reactivateUser(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function reactivateUser(req: Request, res: Response): Promise<void> {
   await toggleUserStatus(req, res, true, "reactivate");
 }
 
-export async function updateUserRole(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function updateUserRole(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   const { role } = req.body;
 
   if (!["USER", "ADMIN"].includes(role)) {
     res.status(400).json({ message: "Invalid role provided" });
+    return;
   }
 
   try {
     const result = await adminService.modifyUserRole(id, role);
     if (result.affectedRows === 0) {
       res.status(404).json({ message: "User not found" });
+      return;
     }
 
     res.status(200).json({ message: `User role updated to ${role}` });
@@ -139,10 +124,7 @@ export async function updateUserRole(
   }
 }
 
-export async function fetchUserMetrics(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchUserMetrics(req: Request, res: Response): Promise<void> {
   try {
     const metrics = await adminService.getUserStats();
     res.status(200).json(metrics);
@@ -151,10 +133,7 @@ export async function fetchUserMetrics(
   }
 }
 
-export async function fetchNewsMetrics(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchNewsMetrics(req: Request, res: Response): Promise<void> {
   try {
     const metrics = await adminService.getNewsStats();
     res.status(200).json(metrics);
@@ -179,6 +158,7 @@ async function toggleUserStatus(
     const result = await adminService.setActiveStatus(id, isActive);
     if (result.affectedRows === 0) {
       res.status(404).json({ message: "User not found" });
+      return;
     }
 
     res.status(200).json({ message: `User ${action}d successfully` });
@@ -187,16 +167,12 @@ async function toggleUserStatus(
   }
 }
 
-export async function fetchReportedArticles(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchReportedArticles(req: Request, res: Response): Promise<void> {
   try {
     const reports = await adminService.getReportedArticles();
     res.status(200).json(reports);
   } catch (error) {
-    console.error("Error fetching reported articles:", error);
-    res.status(500).json({ message: "Failed to fetch reported articles" });
+    handleServerError(res, "fetching reported articles", error);
   }
 }
 
@@ -210,10 +186,7 @@ export async function hideArticle(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function dismissReport(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function dismissReport(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   try {
     await adminService.dismissReport(Number(id));
@@ -237,10 +210,7 @@ export async function hideCategory(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function unhideCategory(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function unhideCategory(req: Request, res: Response): Promise<void> {
   const { name } = req.params;
   try {
     const result = await adminService.unhideCategory(name);
@@ -254,10 +224,7 @@ export async function unhideCategory(
   }
 }
 
-export async function fetchCategories(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchCategories(req: Request, res: Response): Promise<void> {
   try {
     const categories = await adminService.getCategoriesFromArticles();
     res.status(200).json(categories);
@@ -266,25 +233,16 @@ export async function fetchCategories(
   }
 }
 
-export async function fetchAllCategories(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchAllCategories(req: Request, res: Response): Promise<void> {
   try {
     const categories = await adminService.getAllCategories();
     res.status(200).json(categories);
   } catch (error) {
-    console.error("[Controller] Failed to fetch all categories:", error);
-    res.status(500).json({ message: "Failed to fetch categories." });
+    handleServerError(res, "fetching all categories", error);
   }
 }
 
-
-
-export async function fetchBannedKeywords(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchBannedKeywords(req: Request, res: Response): Promise<void> {
   try {
     const keywords = await adminService.getBannedKeywords();
     res.status(200).json(keywords);
@@ -293,10 +251,7 @@ export async function fetchBannedKeywords(
   }
 }
 
-export async function addBannedKeyword(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function addBannedKeyword(req: Request, res: Response): Promise<void> {
   const { keyword } = req.body;
   if (!keyword || typeof keyword !== "string") {
     res.status(400).json({ message: "Keyword is required" });
@@ -310,10 +265,7 @@ export async function addBannedKeyword(
   }
 }
 
-export async function deleteBannedKeyword(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function deleteBannedKeyword(req: Request, res: Response): Promise<void> {
   const id = Number(req.params.id);
   if (isNaN(id)) {
     res.status(400).json({ message: "Invalid keyword ID" });
@@ -331,10 +283,7 @@ export async function deleteBannedKeyword(
   }
 }
 
-export async function enableBannedKeyword(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function enableBannedKeyword(req: Request, res: Response): Promise<void> {
   const id = Number(req.params.id);
   if (isNaN(id)) {
     res.status(400).json({ message: "Invalid keyword ID" });
@@ -352,10 +301,7 @@ export async function enableBannedKeyword(
   }
 }
 
-export async function disableBannedKeyword(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function disableBannedKeyword(req: Request, res: Response): Promise<void> {
   const id = Number(req.params.id);
   if (isNaN(id)) {
     res.status(400).json({ message: "Invalid keyword ID" });
@@ -373,10 +319,7 @@ export async function disableBannedKeyword(
   }
 }
 
-export async function unhideArticle(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function unhideArticle(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
   try {
     await adminService.unhideArticle(Number(id));
@@ -386,11 +329,11 @@ export async function unhideArticle(
   }
 }
 
-function handleServerError(
-  res: Response,
-  context: string,
-  error: unknown
-): void {
-  console.error(`Error ${context}:`, error);
+function handleServerError(res: Response, context: string, error: unknown): void {
+  logger.error(`Error ${context}: ${formatError(error)}`);
   res.status(500).json({ message: `Failed to ${context}` });
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : JSON.stringify(error);
 }

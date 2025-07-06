@@ -4,6 +4,7 @@ import pool from "../config/db";
 import { NEWS_CATEGORIES } from "../config/constants";
 import { NewsApiResponse, TheNewsApiResponse } from "../models/articleModel";
 import { EmailScheduler } from "./emailScheduler";
+import { logger } from "../utils/logger";
 
 const emailScheduler = new EmailScheduler();
 
@@ -11,7 +12,7 @@ export class NewsScheduler {
   constructor(private interval = "0 */3 * * *") {}
 
   public start(): void {
-    console.log(" News scheduler started. Interval:", this.interval);
+    logger.info(`News scheduler started. Interval: ${this.interval}`);
     cron.schedule(this.interval, () => this.fetchNews());
   }
 
@@ -50,7 +51,7 @@ export class NewsScheduler {
 
         const articles = data.articles ?? [];
         if (!Array.isArray(articles) || articles.length === 0) {
-          console.warn(`No ${category} articles from NewsAPI.`);
+          logger.warn(`No ${category} articles from NewsAPI.`);
           continue;
         }
 
@@ -76,9 +77,9 @@ export class NewsScheduler {
       }
 
       await this.updateLastAccessed("newsapi");
-      console.log(" NewsAPI unique articles inserted.");
+      logger.info("NewsAPI unique articles inserted.");
     } catch (error) {
-      console.error(" Error fetching NewsAPI:", error);
+      logger.error(`Error fetching NewsAPI: ${formatError(error)}`);
     }
   }
 
@@ -112,7 +113,7 @@ export class NewsScheduler {
 
         const articles = data.data ?? [];
         if (!Array.isArray(articles) || articles.length === 0) {
-          console.warn(`No ${category} articles from TheNewsAPI.`);
+          logger.warn(`No ${category} articles from TheNewsAPI.`);
           continue;
         }
 
@@ -138,9 +139,9 @@ export class NewsScheduler {
       }
 
       await this.updateLastAccessed("thenewsapi");
-      console.log(" TheNewsAPI unique articles inserted.");
+      logger.info("TheNewsAPI unique articles inserted.");
     } catch (error) {
-      console.error(" Error fetching TheNewsAPI:", error);
+      logger.error(`Error fetching TheNewsAPI: ${formatError(error)}`);
     }
   }
 
@@ -158,7 +159,9 @@ export class NewsScheduler {
       let formattedPublishedAt = article.published_at;
 
       if (formattedPublishedAt) {
-        formattedPublishedAt = formattedPublishedAt.replace("T", " ").replace("Z", "");
+        formattedPublishedAt = formattedPublishedAt
+          .replace("T", " ")
+          .replace("Z", "");
       }
 
       await pool.query(
@@ -186,13 +189,16 @@ export class NewsScheduler {
         published_at: formattedPublishedAt ?? new Date().toISOString(),
         url: article.url,
       });
+
+      logger.info(`Inserted article: ${article.title}`);
     } catch (error) {
-      console.error("DB insertion error:", error);
+      logger.error(`DB insertion error: ${formatError(error)}`);
     }
   }
 
   private async upsertCategory(categoryName?: string): Promise<void> {
-    if (!categoryName || categoryName.trim().toLowerCase() === "uncategorized") return;
+    if (!categoryName || categoryName.trim().toLowerCase() === "uncategorized")
+      return;
 
     const trimmedName = categoryName.trim().toLowerCase();
 
@@ -213,12 +219,15 @@ export class NewsScheduler {
         `UPDATE servers SET last_accessed = NOW() WHERE id = ?`,
         [serverId]
       );
-      console.log(`[INFO] Updated last_accessed for server: ${serverId}`);
+      logger.info(`Updated last_accessed for server: ${serverId}`);
     } catch (error) {
-      console.error(
-        `[ERROR] Failed to update last_accessed for ${serverId}:`,
-        error
+      logger.error(
+        `Failed to update last_accessed for ${serverId}: ${formatError(error)}`
       );
     }
   }
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : JSON.stringify(error);
 }

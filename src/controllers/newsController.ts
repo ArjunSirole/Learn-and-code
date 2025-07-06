@@ -1,10 +1,14 @@
 import { Request, Response, RequestHandler } from "express";
 import { AuthRequest } from "../middlewares/authMiddleware";
 import { NewsService } from "../services/newsService";
+import { logger } from "../utils/logger";
 
 const newsService = new NewsService();
 
-export async function fetchHeadlines(req: Request, res: Response): Promise<void> {
+export async function fetchHeadlines(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
@@ -14,7 +18,14 @@ export async function fetchHeadlines(req: Request, res: Response): Promise<void>
     const offset = parseInt(req.query.offset as string) || 0;
 
     const [articles, total] = await Promise.all([
-      newsService.getArticlesFromDB(startDate, endDate, category, sortBy, limit, offset),
+      newsService.getArticlesFromDB(
+        startDate,
+        endDate,
+        category,
+        sortBy,
+        limit,
+        offset
+      ),
       newsService.countArticles(startDate, endDate, category),
     ]);
 
@@ -28,7 +39,6 @@ export async function fetchHeadlines(req: Request, res: Response): Promise<void>
     handleError("fetching headlines", error, res);
   }
 }
-
 
 export async function saveUserArticle(
   req: AuthRequest,
@@ -154,7 +164,6 @@ export async function fetchFeedbackSortedArticles(
   }
 }
 
-
 export async function reportArticle(
   req: AuthRequest,
   res: Response
@@ -195,7 +204,37 @@ export async function reportArticle(
   }
 }
 
+export async function fetchRecommendedArticles(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  const userId = req.user.id;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = parseInt(req.query.offset as string) || 0;
+
+  try {
+    const [articles, total] = await newsService.getRecommendedArticles(
+      userId,
+      limit,
+      offset
+    );
+
+    if (!articles || articles.length === 0) {
+      res.status(204).send();
+      return;
+    }
+
+    res.status(200).json({ articles, total });
+  } catch (error) {
+    handleError("fetching recommended articles", error, res);
+  }
+}
+
 function handleError(context: string, error: unknown, res: Response): void {
-  console.error(`Error ${context}:`, error);
+  logger.error(`Error ${context}: ${formatError(error)}`);
   res.status(500).json({ message: `Failed to ${context}` });
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : JSON.stringify(error);
 }
