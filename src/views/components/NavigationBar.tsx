@@ -18,6 +18,7 @@ function NavigationBar(): JSX.Element {
         {role === "USER" && (
           <>
             <Link to="/news">News</Link>
+             <Link to="/recommended">Recommended</Link>
             <Link to="/saved">Saved Articles</Link>
             <Link to="/feedback?sort=like">Liked Articles</Link>
             <Link to="/feedback?sort=dislike">Disliked Articles</Link>
