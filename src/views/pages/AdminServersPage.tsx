@@ -1,68 +1,25 @@
-import React, { JSX, useCallback, useEffect, useState } from "react";
+import React, { JSX } from "react";
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/ConfirmationModal";
 import Toast from "../components/Toast";
-import { getServers, getServerDetails, updateServerApiKey } from "../../api/serverApi";
-import { Server, ServerDetails } from "../../interfaces/server";
+import { useAdminServers } from "../../hooks/useAdminServers";
 import "../styles/AdminServersPage.css";
 
-
 function AdminServersPage(): JSX.Element {
-  const [servers, setServers] = useState<Server[]>([]);
-  const [selectedServer, setSelectedServer] = useState<ServerDetails | null>(null);
-  const [newApiKey, setNewApiKey] = useState<string>("");
-  const [error, setError] = useState<string>("");
-
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [confirmUpdate, setConfirmUpdate] = useState<boolean>(false);
-  const [updating, setUpdating] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchServers();
-  }, []);
-
-  async function fetchServers(): Promise<void> {
-    setError("");
-    try {
-      const data = await getServers();
-      setServers(data);
-    } catch (err: unknown) {
-      console.error("[AdminServersPage.fetchServers]:", err);
-      setError("Failed to load servers.");
-    }
-  }
-
-  async function fetchDetails(id: string): Promise<void> {
-    setError("");
-    try {
-      const data = await getServerDetails(id);
-      setSelectedServer(data);
-      setNewApiKey(data.api_key || "");
-    } catch (err: unknown) {
-      console.error("[AdminServersPage.fetchDetails]:", err);
-      setError("Failed to load server details.");
-    }
-  }
-
-  const handleApiKeyUpdate = useCallback(async (): Promise<void> => {
-    if (!selectedServer) {
-      console.warn("handleApiKeyUpdate called without a selectedServer");
-      return;
-    }
-
-    setUpdating(true);
-    try {
-      await updateServerApiKey(selectedServer.id, newApiKey);
-      setToastMessage("API key updated successfully.");
-      setConfirmUpdate(false);
-      await fetchServers();
-    } catch (err: unknown) {
-      console.error("[AdminServersPage.handleApiKeyUpdate]:", err);
-      setError("Failed to update API key.");
-    } finally {
-      setUpdating(false);
-    }
-  }, [selectedServer, newApiKey]);
+  const {
+    servers,
+    selectedServer,
+    newApiKey,
+    error,
+    toastMessage,
+    confirmUpdate,
+    updating,
+    fetchDetails,
+    handleApiKeyUpdate,
+    setNewApiKey,
+    setConfirmUpdate,
+    setToastMessage,
+  } = useAdminServers();
 
   return (
     <>

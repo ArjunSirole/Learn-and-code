@@ -36,7 +36,9 @@ function NavigationBar(): JSX.Element {
 
       {role === "USER" && (
         <div className="nav-right">
-          <Link to="/profile" className="profile-link">Profile</Link>
+          <Link to="/profile" className="profile-link">
+            Profile
+          </Link>
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}

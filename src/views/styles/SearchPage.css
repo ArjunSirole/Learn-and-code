@@ -8,38 +8,47 @@
   text-align: center;
   font-size: 2em;
   color: #000000;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
-.search-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+.filters {
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  background: #fff;
-  padding: 20px;
-  border: 1px solid #e1e4e8;
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  margin: 24px 0;
+  align-items: flex-end;
+  justify-content: flex-start;
 }
 
-.search-form label {
-  font-weight: 500;
-  color: #333;
+.filters label {
   display: flex;
   flex-direction: column;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #333;
 }
 
-.search-form input,
-.search-form select {
-  padding: 8px;
+.filters select,
+.filters input[type="date"],
+.filters input[type="text"] {
+  padding: 8px 12px;
+  font-size: 0.95em;
   border: 1px solid #ccc;
   border-radius: 6px;
-  margin-top: 4px;
-  font-size: 0.95em;
+  min-width: 160px;
+  margin-top: 6px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-.search-form button {
-  grid-column: 1 / -1;
+.filters select:focus,
+.filters input[type="date"]:focus,
+.filters input[type="text"]:focus {
+  border: 1px solid #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+  outline: none;
+}
+
+.filters button {
   padding: 10px 20px;
   background: #1a73e8;
   color: white;
@@ -48,9 +57,10 @@
   font-size: 1em;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
+  margin-top: 6px;
 }
 
-.search-form button:hover {
+.filters button:hover {
   background: #155ab6;
   transform: scale(1.02);
 }
@@ -69,13 +79,13 @@
   border: 1px solid #e1e4e8;
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .search-item h3 {
@@ -105,4 +115,30 @@
   margin-top: 16px;
   text-align: center;
   font-weight: 500;
+}
+
+.pagination-controls {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  margin: 0 8px;
+  border: none;
+  background-color: #1a73e8;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.pagination-controls button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-weight: 500;
+  font-size: 1rem;
 }

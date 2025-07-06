@@ -1,107 +1,41 @@
-import React, { JSX, useEffect, useState } from "react";
+import React, { JSX, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { TokenStorage } from "../../utils/tokenStorage";
-import { getUserIdFromToken } from "../../utils/jwtUtils";
-import apiClient from "../../api/apiClient";
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/ConfirmationModal";
 import Toast from "../components/Toast";
+import Spinner from "../components/Spinner";
 import "../styles/NotificationsPage.css";
-import { Notification } from "../../interfaces/notification";
+import { TokenStorage } from "../../utils/tokenStorage";
+import { useNotifications } from "../../hooks/useNotifications";
 
 function NotificationsPage(): JSX.Element {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [error, setError] = useState<string>("");
   const navigate = useNavigate();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [confirmAction, setConfirmAction] = useState<{
-    type: "mark-all" | "mark-one";
-    notificationId?: number;
-  } | null>(null);
-  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
+  const {
+    notifications,
+    error,
+    loading,
+    toastMessage,
+    setToastMessage,
+    confirmAction,
+    setConfirmAction,
+    confirmLoading,
+    handleConfirm,
+  } = useNotifications();
 
   useEffect(() => {
     const token = TokenStorage.getToken();
-    if (!token) {
-      navigate("/");
-      return;
-    }
-    fetchNotifications();
+    if (!token) navigate("/");
   }, [navigate]);
-
-  async function fetchNotifications(): Promise<void> {
-    setLoading(true);
-    try {
-      const userId = getUserIdFromToken();
-      if (!userId) {
-        throw new Error("Invalid user token.");
-      }
-      const response = await apiClient.get<{ data: Notification[] }>(
-        `/notifications/${userId}/articles`
-      );
-      const unread = response.data.data.filter((n) => !n.is_read);
-      setNotifications(unread);
-    } catch (err: unknown) {
-      console.error("[NotificationsPage.fetchNotifications]:", err);
-      setError("Failed to load notifications.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleConfirm(): Promise<void> {
-    if (!confirmAction) return;
-
-    const userId = getUserIdFromToken();
-    if (!userId) {
-      setError("Invalid user.");
-      return;
-    }
-
-    setConfirmLoading(true);
-
-    try {
-      if (confirmAction.type === "mark-all") {
-        const ids = notifications.map((n) => n.id);
-        if (ids.length === 0) return;
-
-        await apiClient.post("/notifications/mark-read", {
-          user_id: userId,
-          notificationIds: ids,
-        });
-
-        setNotifications([]);
-        setToastMessage("All notifications marked as read.");
-      } else if (confirmAction.type === "mark-one" && confirmAction.notificationId) {
-        await apiClient.post("/notifications/mark-read", {
-          user_id: userId,
-          notificationIds: [confirmAction.notificationId],
-        });
-
-        setNotifications((prev) =>
-          prev.filter((n) => n.id !== confirmAction.notificationId)
-        );
-        setToastMessage("Notification marked as read.");
-      }
-      setConfirmAction(null);
-    } catch (err: unknown) {
-      console.error("[NotificationsPage.handleConfirm]:", err);
-      setError("Failed to mark notifications as read.");
-      setConfirmAction(null);
-    } finally {
-      setConfirmLoading(false);
-    }
-  }
 
   return (
     <>
       <NavigationBar />
       <div className="notifications-container">
         <h1 className="page-title">Your Notifications</h1>
+
         {error && <div className="error">{error}</div>}
-        {loading && <p>Loading notifications...</p>}
+        {loading && <Spinner />}
 
         {notifications.length === 0 && !loading ? (
           <p>You have no unread notifications.</p>

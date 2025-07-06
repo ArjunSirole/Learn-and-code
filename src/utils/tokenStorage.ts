@@ -13,7 +13,12 @@ export class TokenStorage {
     localStorage.removeItem(this.TOKEN_KEY);
   }
 
-  static getUserPayload(): { id: number; name: string; email?: string; role: string } | null {
+  static getUserPayload(): {
+    id: number;
+    name: string;
+    email?: string;
+    role: string;
+  } | null {
     const token = this.getToken();
     if (!token) return null;
 
@@ -26,7 +31,10 @@ export class TokenStorage {
         role: payload.role,
       };
     } catch (err) {
-      console.error("[TokenStorage.getUserPayload] Failed to decode token:", err);
+      console.error(
+        "[TokenStorage.getUserPayload] Failed to decode token:",
+        err
+      );
       return null;
     }
   }

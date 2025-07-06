@@ -15,3 +15,9 @@ export interface BannedKeyword {
   keyword: string;
   enabled: boolean;
 }
+
+export interface Category {
+  id: number;
+  name: string;
+  hidden: boolean;
+}

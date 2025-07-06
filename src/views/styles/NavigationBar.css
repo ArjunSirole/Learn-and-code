@@ -12,20 +12,17 @@
   z-index: 100;
 }
 
-/* Left nav links */
 .nav-left {
   display: flex;
   gap: 20px;
 }
 
-/* Right nav (Profile + Logout) */
 .nav-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-/* Links */
 .navigation-bar a {
   text-decoration: none;
   color: #fff;
@@ -39,13 +36,11 @@
   background-color: #444;
 }
 
-/* Active tab styling (optional) */
 .navigation-bar .active-tab {
   color: #007bff;
   font-weight: bold;
 }
 
-/* Profile button styling */
 .profile-link {
   background: none;
   border: none;
@@ -61,7 +56,6 @@
   background-color: #444;
 }
 
-/* Logout button styling */
 .navigation-bar button {
   background: none;
   border: none;

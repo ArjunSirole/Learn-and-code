@@ -1,6 +1,6 @@
 .profile-container {
   max-width: 700px;
-  margin:  auto;
+  margin: auto;
   font-family: "Roboto", "Segoe UI", Arial, sans-serif;
 }
 
@@ -17,7 +17,7 @@
   border: 1px solid #e1e4e8;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -25,7 +25,7 @@
 .profile-card:hover,
 .preferences-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .profile-card p {

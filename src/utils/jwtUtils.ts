@@ -1,5 +1,3 @@
-// utils/jwtUtils.ts
-
 import { TokenStorage } from "./tokenStorage";
 
 export interface TokenPayload {

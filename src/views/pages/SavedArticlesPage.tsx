@@ -13,7 +13,9 @@ function SavedArticlesPage(): JSX.Element {
   const [articles, setArticles] = useState<SavedArticle[]>([]);
   const [error, setError] = useState<string>("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [confirmArticle, setConfirmArticle] = useState<SavedArticle | null>(null);
+  const [confirmArticle, setConfirmArticle] = useState<SavedArticle | null>(
+    null
+  );
   const [loading, setLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -48,9 +50,7 @@ function SavedArticlesPage(): JSX.Element {
 
     try {
       await apiClient.delete(`/news/saved/${confirmArticle.id}`);
-      setArticles((prev) =>
-        prev.filter((a) => a.id !== confirmArticle.id)
-      );
+      setArticles((prev) => prev.filter((a) => a.id !== confirmArticle.id));
       setToastMessage("Article removed successfully.");
       setConfirmArticle(null);
     } catch (err: unknown) {
@@ -88,7 +88,11 @@ function SavedArticlesPage(): JSX.Element {
                       <strong>Feedback:</strong> {article.feedback}
                     </p>
                   )}
-                  <a href={article.url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Read More
                   </a>
                 </div>

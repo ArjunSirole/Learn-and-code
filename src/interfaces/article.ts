@@ -7,4 +7,6 @@ export interface Article {
   source: string;
   category?: string;
   image_url?: string;
+  like_count?: number;
+  dislike_count?: number;
 }

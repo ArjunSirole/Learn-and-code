@@ -11,6 +11,9 @@ export async function getServerDetails(id: string): Promise<ServerDetails> {
   return res.data;
 }
 
-export async function updateServerApiKey(id: string, apiKey: string): Promise<void> {
+export async function updateServerApiKey(
+  id: string,
+  apiKey: string
+): Promise<void> {
   await apiClient.put(`/admin/servers/${id}/apikey`, { apiKey });
 }

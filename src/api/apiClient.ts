@@ -2,7 +2,7 @@ import axios from "axios";
 import { TokenStorage } from "../utils/tokenStorage";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000", 
+  baseURL: "http://localhost:3000",
 });
 
 apiClient.interceptors.request.use((config) => {

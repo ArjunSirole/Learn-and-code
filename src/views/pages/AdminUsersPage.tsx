@@ -1,73 +1,21 @@
-import React, { JSX, useEffect, useState } from "react";
-import apiClient from "../../api/apiClient";
+import React, { JSX, useState } from "react";
+import { useAdminUsers } from "../../hooks/useAdminUsers";
 import NavigationBar from "../components/NavigationBar";
 import ConfirmationModal from "../components/ConfirmationModal";
 import Toast from "../components/Toast";
 import "../styles/AdminUsersPage.css";
-import { User } from "../../interfaces/user";
 
 function AdminUsersPage(): JSX.Element {
-  const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState<string>("");
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const [confirmAction, setConfirmAction] = useState<{
-    user: User;
-    type: "delete" | "toggle" | "role";
-  } | null>(null);
-
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  async function fetchUsers(): Promise<void> {
-    setError("");
-    try {
-      const response = await apiClient.get<User[]>("/admin/users");
-      setUsers(response.data);
-    } catch (err) {
-      console.error("[AdminUsersPage.fetchUsers]:", err);
-      setError("Failed to load users.");
-    }
-  }
-
-  async function handleConfirm(): Promise<void> {
-    if (!confirmAction) return;
-
-    const { user, type } = confirmAction;
-
-    setLoading(true);
-
-    try {
-      if (type === "delete") {
-        await apiClient.delete(`/admin/users/${user.id}`);
-        setToastMessage(`Deleted ${user.name}.`);
-      } else if (type === "toggle") {
-        const endpoint = user.active
-          ? `/admin/users/${user.id}/deactivate`
-          : `/admin/users/${user.id}/reactivate`;
-        await apiClient.put(endpoint);
-        setToastMessage(
-          `${user.active ? "Deactivated" : "Reactivated"} ${user.name}.`
-        );
-      } else if (type === "role") {
-        const newRole = user.role === "ADMIN" ? "USER" : "ADMIN";
-        await apiClient.put(`/admin/users/${user.id}/role`, { role: newRole });
-        setToastMessage(`Changed role to ${newRole} for ${user.name}.`);
-      }
-
-      setConfirmAction(null);
-      fetchUsers();
-    } catch (err) {
-      console.error("[AdminUsersPage.handleConfirm]:", err);
-      setError("Operation failed.");
-      setConfirmAction(null);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    users,
+    error,
+    toastMessage,
+    confirmAction,
+    loading,
+    setConfirmAction,
+    setToastMessage,
+    handleConfirm,
+  } = useAdminUsers();
 
   return (
     <>
@@ -95,23 +43,17 @@ function AdminUsersPage(): JSX.Element {
                 <td>{user.active ? "Active" : "Inactive"}</td>
                 <td className="user-actions">
                   <button
-                    onClick={() =>
-                      setConfirmAction({ user, type: "toggle" })
-                    }
+                    onClick={() => setConfirmAction({ user, type: "toggle" })}
                   >
                     {user.active ? "Deactivate" : "Reactivate"}
                   </button>
                   <button
-                    onClick={() =>
-                      setConfirmAction({ user, type: "role" })
-                    }
+                    onClick={() => setConfirmAction({ user, type: "role" })}
                   >
                     Make {user.role === "ADMIN" ? "User" : "Admin"}
                   </button>
                   <button
-                    onClick={() =>
-                      setConfirmAction({ user, type: "delete" })
-                    }
+                    onClick={() => setConfirmAction({ user, type: "delete" })}
                   >
                     Delete
                   </button>

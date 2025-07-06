@@ -11,7 +11,6 @@
   margin-bottom: 24px;
 }
 
-/* Mark All as Read button */
 .mark-read-button {
   display: block;
   margin: 0 auto 24px auto;
@@ -30,26 +29,24 @@
   transform: scale(1.03);
 }
 
-/* Grid layout */
 .notifications-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
 }
 
-/* Card styling */
 .notification-card {
   border: 1px solid #e1e4e8;
   border-radius: 12px;
   background: #fff;
   padding: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .notification-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .notification-card.read {
