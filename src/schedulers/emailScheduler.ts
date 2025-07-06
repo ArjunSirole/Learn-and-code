@@ -22,35 +22,37 @@ export class EmailScheduler {
   }): Promise<void> {
     try {
       const [rows] = await pool.query<RowDataPacket[]>(`
-        SELECT * FROM notification_config
-      `);
+      SELECT * FROM notification_config
+    `);
 
       const users = rows as any[];
 
       for (const user of users) {
         const categoryLower = (article.category ?? "").toLowerCase();
 
-        const enabled =
+        const isCategoryEnabled =
           NOTIFICATION_CATEGORIES.includes(categoryLower) &&
           user[categoryLower] === 1;
 
         const keywordArray =
           user.keywords
             ?.split(",")
-            .map((k: string) => k.trim())
+            .map((k: string) => k.trim().toLowerCase())
             .filter(Boolean) || [];
 
         const keywordMatch = keywordArray.some(
-          (k: string) => article.title.includes(k) || article.url.includes(k)
+          (k: string) =>
+            article.title.toLowerCase().includes(k) ||
+            article.url.toLowerCase().includes(k)
         );
 
-        if (enabled || keywordMatch) {
+        if (isCategoryEnabled || keywordMatch) {
           await pool.query(
             `
-            INSERT INTO notifications (
-              user_id, title, category, published_at, url, is_read
-            ) VALUES (?, ?, ?, ?, ?, 0)
-          `,
+          INSERT INTO notifications (
+            user_id, title, category, published_at, url, is_read
+          ) VALUES (?, ?, ?, ?, ?, 0)
+        `,
             [
               user.user_id,
               article.title,
@@ -59,8 +61,14 @@ export class EmailScheduler {
               article.url,
             ]
           );
+
+          const reason = isCategoryEnabled ? "category match" : "keyword match";
           logger.info(
-            `Notification inserted for user ${user.user_id} - ${article.title}`
+            `[NOTIFY] User ${user.user_id} | Article: "${article.title}" | Reason: ${reason}`
+          );
+        } else {
+          logger.info(
+            `[SKIP] User ${user.user_id} - No match for article "${article.title}"`
           );
         }
       }

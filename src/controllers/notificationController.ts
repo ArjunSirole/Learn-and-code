@@ -104,7 +104,7 @@ export async function fetchUserNotifications(
         a.source
       FROM notifications n
       JOIN articles a ON n.url = a.url
-      WHERE n.user_id = ?
+      WHERE n.user_id = ? AND n.is_read = 0
       ORDER BY n.published_at DESC
       LIMIT ? OFFSET ?
       `,
@@ -112,7 +112,7 @@ export async function fetchUserNotifications(
     );
 
     res.status(200).json({
-      message: "Notifications retrieved successfully",
+      message: "Unread notifications retrieved successfully",
       data: rows,
     });
   } catch (error) {
