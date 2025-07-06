@@ -24,6 +24,7 @@ import {
   disableBannedKeyword,
   enableBannedKeyword,
   unhideArticle,
+  fetchAllCategories,
 } from "../controllers/adminController";
 
 const router = Router();
@@ -48,6 +49,7 @@ router.put("/articles/:id/hide", hideArticle);
 router.put("/reports/:id/dismiss", dismissReport);
 
 router.get("/categories", fetchCategories);
+router.get("/all-categories", fetchAllCategories);
 router.put("/categories/:name/hide", hideCategory);
 router.put("/categories/:name/unhide", unhideCategory);
 router.get("/banned-keywords", fetchBannedKeywords);
@@ -55,7 +57,7 @@ router.post("/banned-keywords", addBannedKeyword);
 router.delete("/banned-keywords/:id", deleteBannedKeyword);
 router.put("/banned-keywords/:id/enable", enableBannedKeyword);
 router.put("/banned-keywords/:id/disable", disableBannedKeyword);
-router.put("/admin/articles/:id/unhide", unhideArticle);
+router.put("/articles/:id/unhide", unhideArticle);
 
 router.post("/logout", logoutAdmin);
 

@@ -259,12 +259,27 @@ export async function fetchCategories(
   res: Response
 ): Promise<void> {
   try {
-    const categories = await adminService.getCategories();
+    const categories = await adminService.getCategoriesFromArticles();
     res.status(200).json(categories);
   } catch (error) {
     handleServerError(res, "fetching categories", error);
   }
 }
+
+export async function fetchAllCategories(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const categories = await adminService.getAllCategories();
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error("[Controller] Failed to fetch all categories:", error);
+    res.status(500).json({ message: "Failed to fetch categories." });
+  }
+}
+
+
 
 export async function fetchBannedKeywords(
   req: Request,

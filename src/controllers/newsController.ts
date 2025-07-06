@@ -4,19 +4,18 @@ import { NewsService } from "../services/newsService";
 
 const newsService = new NewsService();
 
-export async function fetchHeadlines(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function fetchHeadlines(req: Request, res: Response): Promise<void> {
   try {
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
+    const category = req.query.category as string | undefined;
+    const sortBy = req.query.sortBy as string | undefined;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
 
     const [articles, total] = await Promise.all([
-      newsService.getArticlesFromDB(startDate, endDate, limit, offset),
-      newsService.countArticles(startDate, endDate),
+      newsService.getArticlesFromDB(startDate, endDate, category, sortBy, limit, offset),
+      newsService.countArticles(startDate, endDate, category),
     ]);
 
     if (!articles || articles.length === 0) {
@@ -24,14 +23,12 @@ export async function fetchHeadlines(
       return;
     }
 
-    res.status(200).json({
-      articles,
-      total,
-    });
+    res.status(200).json({ articles, total });
   } catch (error) {
     handleError("fetching headlines", error, res);
   }
 }
+
 
 export async function saveUserArticle(
   req: AuthRequest,
@@ -156,6 +153,7 @@ export async function fetchFeedbackSortedArticles(
     handleError("fetching sorted feedback", error, res);
   }
 }
+
 
 export async function reportArticle(
   req: AuthRequest,

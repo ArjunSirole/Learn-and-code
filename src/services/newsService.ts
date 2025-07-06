@@ -98,31 +98,34 @@ export class NewsService {
   async getArticlesFromDB(
     startDate?: string,
     endDate?: string,
+    category?: string,
+    sortBy: string = "date",
     limit = 20,
     offset = 0
   ) {
     let sql = `
-      SELECT 
-        a.id,
-        a.title,
-        a.url,
-        a.source,
-        a.category,
-        a.published_at,
-        a.description,
-        a.categories,
-        a.image_url
-      FROM articles a
-      LEFT JOIN categories c ON a.category = c.name
-      WHERE a.is_hidden = 0
-        AND (c.hidden IS NULL OR c.hidden = 0)
-        AND NOT EXISTS (
-          SELECT 1 FROM banned_keywords bk
-          WHERE 
-            a.title LIKE CONCAT('%', bk.keyword, '%')
-            OR a.description LIKE CONCAT('%', bk.keyword, '%')
-        )
-    `;
+  SELECT 
+    a.id,
+    a.title,
+    a.url,
+    a.source,
+    a.category,
+    a.published_at,
+    a.description,
+    a.categories,
+    a.image_url
+  FROM articles a
+  LEFT JOIN categories c ON a.category = c.name
+  WHERE a.is_hidden = 0
+    AND (c.hidden IS NULL OR c.hidden = 0)
+    AND NOT EXISTS (
+      SELECT 1 FROM banned_keywords bk
+      WHERE 
+        a.title LIKE CONCAT('%', bk.keyword, '%')
+        OR a.description LIKE CONCAT('%', bk.keyword, '%')
+    )
+`;
+
     const params: any[] = [];
 
     if (startDate && endDate) {
@@ -136,14 +139,30 @@ export class NewsService {
       params.push(`${endDate} 23:59:59`);
     }
 
-    sql += ` ORDER BY a.published_at DESC LIMIT ? OFFSET ?`;
+    if (category) {
+      sql += ` AND a.category = ?`;
+      params.push(category);
+    }
+
+    switch (sortBy) {
+      case "likes":
+        sql += ` ORDER BY a.like_count DESC`;
+        break;
+      case "dislikes":
+        sql += ` ORDER BY a.dislike_count DESC`;
+        break;
+      default:
+        sql += ` ORDER BY a.published_at DESC`;
+    }
+
+    sql += ` LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
     const [rows] = await pool.query<RowDataPacket[]>(sql, params);
     return rows;
   }
 
-  async countArticles(startDate?: string, endDate?: string) {
+  async countArticles(startDate?: string, endDate?: string, category?: string) {
     let sql = `
       SELECT COUNT(*) AS total
       FROM articles a
@@ -168,6 +187,10 @@ export class NewsService {
     } else if (endDate) {
       sql += ` AND a.published_at <= ?`;
       params.push(`${endDate} 23:59:59`);
+    }
+    if (category) {
+      sql += ` AND a.category = ?`;
+      params.push(category);
     }
 
     const [rows] = await pool.query<RowDataPacket[]>(sql, params);
@@ -214,30 +237,50 @@ export class NewsService {
     sortBy?: string
   ) {
     let sql = `
-      SELECT id, title, url, source, published_at, description, image_url
-      FROM articles
-      WHERE is_hidden = 0
-        AND MATCH(title, description, source) AGAINST(? IN NATURAL LANGUAGE MODE)
-    `;
+    SELECT 
+      a.id, a.title, a.url, a.source, a.published_at, a.description, a.image_url,
+      COALESCE(l.like_count, 0) AS like_count,
+      COALESCE(d.dislike_count, 0) AS dislike_count
+    FROM articles a
+    LEFT JOIN (
+      SELECT article_id, COUNT(*) AS like_count
+      FROM article_feedback
+      WHERE feedback = 'LIKE'
+      GROUP BY article_id
+    ) l ON a.id = l.article_id
+    LEFT JOIN (
+      SELECT article_id, COUNT(*) AS dislike_count
+      FROM article_feedback
+      WHERE feedback = 'DISLIKE'
+      GROUP BY article_id
+    ) d ON a.id = d.article_id
+    WHERE a.is_hidden = 0
+      AND MATCH(a.title, a.description, a.source) AGAINST(? IN NATURAL LANGUAGE MODE)
+  `;
+
     const params: any[] = [query];
 
     if (category) {
       sql += ` AND (
-        category = ?
-        OR JSON_CONTAINS(categories, ?)
-      )`;
+      a.category = ?
+      OR JSON_CONTAINS(a.categories, ?)
+    )`;
       params.push(category, `"${category}"`);
     }
 
     if (startDate && endDate) {
-      sql += " AND published_at BETWEEN ? AND ?";
+      sql += " AND a.published_at BETWEEN ? AND ?";
       params.push(startDate, endDate);
     }
 
-    if (sortBy === "date") {
-      sql += " ORDER BY published_at DESC";
+    if (sortBy === "likes") {
+      sql += " ORDER BY like_count DESC";
+    } else if (sortBy === "dislikes") {
+      sql += " ORDER BY dislike_count DESC";
+    } else if (sortBy === "date") {
+      sql += " ORDER BY a.published_at DESC";
     } else {
-      sql += " ORDER BY MATCH(title, description) AGAINST(?) DESC";
+      sql += " ORDER BY MATCH(a.title, a.description) AGAINST(?) DESC";
       params.push(query);
     }
 
@@ -305,7 +348,6 @@ export class NewsService {
         ]);
       }
 
-      // Insert banned keywords
       if (banKeywords && banKeywords.length > 0) {
         for (const keyword of banKeywords) {
           if (keyword.trim()) {

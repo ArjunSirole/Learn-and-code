@@ -155,14 +155,10 @@ export class NewsScheduler {
     image_url?: string;
   }): Promise<void> {
     try {
-      // If there's a published_at, format it for MySQL compatibility
       let formattedPublishedAt = article.published_at;
 
       if (formattedPublishedAt) {
-        // Remove the 'Z' and replace 'T' with a space to match the MySQL format
-        formattedPublishedAt = formattedPublishedAt
-          .replace("T", " ")
-          .replace("Z", "");
+        formattedPublishedAt = formattedPublishedAt.replace("T", " ").replace("Z", "");
       }
 
       await pool.query(
@@ -182,7 +178,8 @@ export class NewsScheduler {
         ]
       );
 
-      // Insert into notifications
+      await this.upsertCategory(article.category);
+
       await emailScheduler.insertNotificationsForNewArticle({
         title: article.title,
         category: (article.category ?? "").toLowerCase(),
@@ -192,6 +189,22 @@ export class NewsScheduler {
     } catch (error) {
       console.error("DB insertion error:", error);
     }
+  }
+
+  private async upsertCategory(categoryName?: string): Promise<void> {
+    if (!categoryName || categoryName.trim().toLowerCase() === "uncategorized") return;
+
+    const trimmedName = categoryName.trim().toLowerCase();
+
+    await pool.query(
+      `INSERT INTO categories (name, hidden)
+       SELECT ?, 0
+       FROM DUAL
+       WHERE NOT EXISTS (
+         SELECT 1 FROM categories WHERE LOWER(TRIM(name)) = ?
+       )`,
+      [trimmedName, trimmedName]
+    );
   }
 
   private async updateLastAccessed(serverId: string): Promise<void> {

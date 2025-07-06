@@ -133,9 +133,27 @@ export class AdminService {
     return result;
   }
 
-  async getCategories(): Promise<RowDataPacket[]> {
+  async getCategoriesFromArticles(): Promise<RowDataPacket[]> {
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, name, hidden FROM categories ORDER BY name"
+      `
+    SELECT DISTINCT LOWER(TRIM(a.category)) AS name
+FROM articles a
+LEFT JOIN categories c 
+  ON LOWER(TRIM(a.category)) = LOWER(TRIM(c.name))
+WHERE a.category IS NOT NULL
+  AND a.category != ''
+  AND LOWER(TRIM(a.category)) != 'uncategorized'
+  AND (c.hidden IS NULL OR c.hidden = 0)
+ORDER BY name;
+
+    `
+    );
+    return rows;
+  }
+
+  async getAllCategories(): Promise<RowDataPacket[]> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT name, hidden FROM categories ORDER BY name`
     );
     return rows;
   }
