@@ -1,0 +1,105 @@
+.users-container {
+  max-width: 1100px;
+  margin: auto;
+  font-family: "Segoe UI", "Roboto", Arial, sans-serif;
+  border-radius: 8px;
+}
+
+.users-container h2 {
+  text-align: center;
+  font-size: 2em;
+  color: #222;
+  margin-bottom: 24px;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.user-table thead {
+  background-color: #e3e7f0;
+  border-bottom: 2px solid #c0c7d6;
+}
+
+.user-table th,
+.user-table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 0.95em;
+}
+
+.user-table th {
+  font-weight: 600;
+  color: #444;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.user-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.user-table tbody tr:hover {
+  background-color: #f7f9fb;
+}
+
+.user-table td {
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.user-actions button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  color: #fff;
+}
+
+.user-actions button:nth-child(1) {
+  background-color: #fbbc04;
+}
+.user-actions button:nth-child(1):hover {
+  background-color: #e0a800;
+}
+
+.user-actions button:nth-child(2) {
+  background-color: #34a853;
+}
+.user-actions button:nth-child(2):hover {
+  background-color: #22863a;
+}
+
+.user-actions button:nth-child(3) {
+  background-color: #ea4335;
+}
+.user-actions button:nth-child(3):hover {
+  background-color: #c62828;
+}
+
+.user-actions button:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(3)) {
+  background-color: #1a73e8;
+}
+.user-actions
+  button:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(3)):hover {
+  background-color: #155ab6;
+}
+
+.error {
+  color: #d93025;
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 0.95em;
+}

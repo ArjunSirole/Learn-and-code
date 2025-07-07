@@ -1,0 +1,98 @@
+.notifications-container {
+  max-width: 1200px;
+  margin: auto;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2em;
+  color: #1a73e8;
+  margin-bottom: 24px;
+}
+
+.mark-read-button {
+  display: block;
+  margin: 0 auto 24px auto;
+  padding: 8px 16px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.mark-read-button:hover {
+  background: #155ab6;
+  transform: scale(1.03);
+}
+
+.notifications-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.notification-card {
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notification-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.notification-card.read {
+  opacity: 0.6;
+}
+
+.notification-card h3 {
+  margin: 0 0 10px;
+  font-size: 1.2em;
+  color: #222;
+}
+
+.notification-card p {
+  margin: 4px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.notification-card a {
+  color: #1a73e8;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.notification-card a:hover {
+  text-decoration: underline;
+}
+
+.notification-actions {
+  margin-top: 10px;
+}
+
+.mark-read-single {
+  padding: 6px 14px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.mark-read-single:hover {
+  background: #155ab6;
+  transform: scale(1.02);
+}

@@ -1,0 +1,103 @@
+.profile-container {
+  max-width: 700px;
+  margin: auto;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2em;
+  color: #1a73e8;
+  margin-bottom: 24px;
+}
+
+.profile-card,
+.preferences-card {
+  background: #fff;
+  border: 1px solid #e1e4e8;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-card:hover,
+.preferences-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.profile-card p {
+  margin: 8px 0;
+  color: #333;
+  font-size: 1em;
+}
+
+.preferences-card h3 {
+  margin-top: 0;
+  color: #222;
+}
+
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.checkbox-group label {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  background: #f5f7fa;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.checkbox-group label:hover {
+  background: #e8f0fe;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.keywords-label {
+  display: block;
+  margin-top: 16px;
+  font-weight: 500;
+}
+
+.keywords-label input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.save-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #1a73e8;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.save-button:hover {
+  background: #155ab6;
+  transform: scale(1.03);
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}

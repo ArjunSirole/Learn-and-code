@@ -1,0 +1,91 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #f5f7fa;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+}
+
+.saved-container {
+  max-width: 1000px;
+  margin: auto;
+  padding-bottom: 30px;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2em;
+  color: #1a73e8;
+  margin-bottom: 24px;
+}
+
+.saved-articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.saved-article-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 16px 24px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saved-article-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.saved-article-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-article-content h3 {
+  margin: 0 0 6px;
+  font-size: 1.3em;
+  color: #222;
+}
+
+.saved-article-content p {
+  margin: 3px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.saved-article-content a {
+  color: #1a73e8;
+  text-decoration: none;
+  font-weight: 500;
+  margin-top: 4px;
+  font-size: 0.95em;
+}
+
+.saved-article-content a:hover {
+  text-decoration: underline;
+}
+
+.saved-article-card button {
+  padding: 8px 16px;
+  background: #dc3545;
+  border: none;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.saved-article-card button:hover {
+  background: #b02a37;
+  transform: scale(1.03);
+}
